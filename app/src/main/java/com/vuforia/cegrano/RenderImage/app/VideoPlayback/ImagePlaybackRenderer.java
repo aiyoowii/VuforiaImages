@@ -104,7 +104,7 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer
     private long mLostTrackingSince[] = null;
     private boolean mLoadRequested[] = null;
     private Vector<Texture> mTextures;
-    private int indexI,indexJ;
+    private int indexI, indexJ, index[] = new int[5];
 
 
     public ImagePlaybackRenderer(ImagePlayback activity,
@@ -533,11 +533,12 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer
                 || (currentStatus[currentTarget] == MEDIA_STATE.NOT_READY)
                 || (currentStatus[currentTarget] == MEDIA_STATE.ERROR))
             {
-//                drender1(trackableResult, currentTarget);
-//                drender2(trackableResult, currentTarget);
-                render1(trackableResult, currentTarget);
-                render2(trackableResult, currentTarget);
-                render3(trackableResult, currentTarget);
+                render(trackableResult, currentTarget, 0, "abc");
+                render(trackableResult, currentTarget, 1, "dance");
+                render(trackableResult, currentTarget, 2, "penquanrenwu");
+//                render1(trackableResult, currentTarget);
+//                render2(trackableResult, currentTarget);
+//                render3(trackableResult, currentTarget);
             } else
             // In any other case, such as playing or paused, we render
             // the actual contents
@@ -606,19 +607,6 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer
                 GLES20.glDisable(GLES20.GL_BLEND);
             }
 
-            // The following section renders the icons. The actual textures used
-            // are loaded from the assets folder
-
-            if ((currentStatus[currentTarget] == MEDIA_STATE.READY)
-                || (currentStatus[currentTarget] == MEDIA_STATE.REACHED_END)
-                || (currentStatus[currentTarget] == MEDIA_STATE.PAUSED)
-                || (currentStatus[currentTarget] == MEDIA_STATE.NOT_READY)
-                || (currentStatus[currentTarget] == MEDIA_STATE.ERROR))
-//            if (currentStatus[currentTarget] == MEDIA_STATE.ERROR)
-            {
-//                drender2(trackableResult, currentTarget);
-            }
-
             SampleUtils.checkGLError("ImagePlayback renderFrame");
         }
 
@@ -628,283 +616,13 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer
 
     }
 
-    private void drender1(TrackableResult trackableResult, int currentTarget) {
-        // If the movie is ready to be played, pause, has reached end or
-        // is not
-        // ready then we display one of the icons
-        float[] modelViewMatrixButton = Tool.convertPose2GLMatrix(
-                trackableResult.getPose()).getData();
-        float[] modelViewProjectionButton = new float[16];
-
-//                GLES20.glDepthFunc(GLES20.GL_LEQUAL);
-
-        GLES20.glEnable(GLES20.GL_BLEND);
-        GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA,
-                GLES20.GL_ONE_MINUS_SRC_ALPHA);
-
-        // The inacuracy of the rendering process in some devices means
-        // that
-        // even if we use the "Less or Equal" version of the depth
-        // function
-        // it is likely that we will get ugly artifacts
-        // That is the translation in the Z direction is slightly
-        // different
-        // Another posibility would be to use a depth func "ALWAYS" but
-        // that is typically not a good idea
-        Matrix
-                .translateM(
-                        modelViewMatrixButton,
-                        0,
-                        0.0f,
-                        0.0f,
-                        targetPositiveDimensions[currentTarget].getData()[2] / 10.98f);
-        Matrix
-                .scaleM(
-                        modelViewMatrixButton,
-                        0,
-                        (targetPositiveDimensions[currentTarget].getData()[0] / 1.0f),
-                        (targetPositiveDimensions[currentTarget].getData()[1] / 1.0f),
-                        (targetPositiveDimensions[currentTarget].getData()[2] / 1.0f));
-        Matrix.multiplyMM(modelViewProjectionButton, 0,
-                vuforiaAppSession.getProjectionMatrix().getData(), 0,
-                modelViewMatrixButton, 0);
-
-
-//                float ratio = 1.0f;
-//                if (mTextures.get(currentTarget).mSuccess)
-//                    ratio = keyframeQuadAspectRatio[currentTarget];
-//                else
-//                    ratio = targetPositiveDimensions[currentTarget].getData()[1]
-//                            / targetPositiveDimensions[currentTarget].getData()[0];
-//
-//                Matrix.translateM(modelViewMatrixButton,0,0,0,targetPositiveDimensions[currentTarget].getData()[0]
-//                        * ratio);
-//                Matrix.scaleM(modelViewMatrixButton, 0,
-//                        targetPositiveDimensions[currentTarget].getData()[0],
-//                        targetPositiveDimensions[currentTarget].getData()[0]
-//                                * ratio,
-//                        targetPositiveDimensions[currentTarget].getData()[0]);
-//                Matrix.multiplyMM(modelViewMatrixButton, 0,
-//                        vuforiaAppSession.getProjectionMatrix().getData(), 0,
-//                        modelViewMatrixButton, 0);
-
-        GLES20.glUseProgram(keyframeShaderID);
-
-        GLES20.glVertexAttribPointer(keyframeVertexHandle, 3,
-                GLES20.GL_FLOAT, false, 0, quadVertices);
-        GLES20.glVertexAttribPointer(keyframeNormalHandle, 3,
-                GLES20.GL_FLOAT, false, 0, quadNormals);
-        GLES20.glVertexAttribPointer(keyframeTexCoordHandle, 2,
-                GLES20.GL_FLOAT, false, 0, quadTexCoords);
-
-        GLES20.glEnableVertexAttribArray(keyframeVertexHandle);
-        GLES20.glEnableVertexAttribArray(keyframeNormalHandle);
-        GLES20.glEnableVertexAttribArray(keyframeTexCoordHandle);
-
-        GLES20.glActiveTexture(GLES20.GL_TEXTURE3);
-
-        // Depending on the status in which we are we choose the
-        // appropriate
-        // texture to display. Notice that unlike the video these are
-        // regular
-        // GL_TEXTURE_2D textures
-        switch (currentStatus[currentTarget])
-        {
-            case READY:
-                GLES20.glBindTexture(GLES20.GL_TEXTURE_2D,
-                        mTextures.get(2).mTextureID[0]);
-                break;
-            case REACHED_END:
-                GLES20.glBindTexture(GLES20.GL_TEXTURE_2D,
-                        mTextures.get(2).mTextureID[0]);
-                break;
-            case PAUSED:
-                GLES20.glBindTexture(GLES20.GL_TEXTURE_2D,
-                        mTextures.get(2).mTextureID[0]);
-                break;
-            case NOT_READY:
-                GLES20.glBindTexture(GLES20.GL_TEXTURE_2D,
-                        mTextures.get(3).mTextureID[0]);
-                break;
-            case ERROR:
-                GLES20.glBindTexture(GLES20.GL_TEXTURE_2D,
-                        mTextures.get(4).mTextureID[0]);
-                break;
-            default:
-                GLES20.glBindTexture(GLES20.GL_TEXTURE_2D,
-                        mTextures.get(3).mTextureID[0]);
-                break;
-        }
-
-        indexI++;
-        indexI = indexI % mTextures.size();
-        while (!mTextures.get(indexI).name.contains("penquan")) {
-            indexI++;
-            indexI = indexI % mTextures.size();
-        }
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D,
-                mTextures.get(indexI).mTextureID[0]);
-
-        GLES20.glUniformMatrix4fv(keyframeMVPMatrixHandle, 1, false,
-                modelViewProjectionButton, 0);
-        GLES20.glUniform1i(keyframeTexSampler2DHandle, 3);
-
-        // Render
-        GLES20.glDrawElements(GLES20.GL_TRIANGLES, NUM_QUAD_INDEX,
-                GLES20.GL_UNSIGNED_SHORT, quadIndices);
-
-        GLES20.glDisableVertexAttribArray(keyframeVertexHandle);
-        GLES20.glDisableVertexAttribArray(keyframeNormalHandle);
-        GLES20.glDisableVertexAttribArray(keyframeTexCoordHandle);
-
-        GLES20.glUseProgram(0);
-
-        // Finally we return the depth func to its original state
-//                GLES20.glDepthFunc(GLES20.GL_LESS);
-        GLES20.glDisable(GLES20.GL_BLEND);
-    }
-    private void drender2(TrackableResult trackableResult, int currentTarget) {
-        // If the movie is ready to be played, pause, has reached end or
-        // is not
-        // ready then we display one of the icons
-        float[] modelViewMatrixButton = Tool.convertPose2GLMatrix(
-                trackableResult.getPose()).getData();
-        float[] modelViewProjectionButton = new float[16];
-
-//                GLES20.glDepthFunc(GLES20.GL_LEQUAL);
-
-        GLES20.glEnable(GLES20.GL_BLEND);
-        GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA,
-                GLES20.GL_ONE_MINUS_SRC_ALPHA);
-
-        // The inacuracy of the rendering process in some devices means
-        // that
-        // even if we use the "Less or Equal" version of the depth
-        // function
-        // it is likely that we will get ugly artifacts
-        // That is the translation in the Z direction is slightly
-        // different
-        // Another posibility would be to use a depth func "ALWAYS" but
-        // that is typically not a good idea
-        Matrix
-                .translateM(
-                        modelViewMatrixButton,
-                        0,
-                        0.0f,
-                        0.0f,
-                        targetPositiveDimensions[currentTarget].getData()[2] / 2.98f);
-        Matrix
-                .scaleM(
-                        modelViewMatrixButton,
-                        0,
-                        (targetPositiveDimensions[currentTarget].getData()[0] / 1.0f),
-                        (targetPositiveDimensions[currentTarget].getData()[1] / 1.0f),
-                        (targetPositiveDimensions[currentTarget].getData()[2] / 1.0f));
-        Matrix.multiplyMM(modelViewProjectionButton, 0,
-                vuforiaAppSession.getProjectionMatrix().getData(), 0,
-                modelViewMatrixButton, 0);
-
-
-//                float ratio = 1.0f;
-//                if (mTextures.get(currentTarget).mSuccess)
-//                    ratio = keyframeQuadAspectRatio[currentTarget];
-//                else
-//                    ratio = targetPositiveDimensions[currentTarget].getData()[1]
-//                            / targetPositiveDimensions[currentTarget].getData()[0];
-//
-//                Matrix.translateM(modelViewMatrixButton,0,0,0,targetPositiveDimensions[currentTarget].getData()[0]
-//                        * ratio);
-//                Matrix.scaleM(modelViewMatrixButton, 0,
-//                        targetPositiveDimensions[currentTarget].getData()[0],
-//                        targetPositiveDimensions[currentTarget].getData()[0]
-//                                * ratio,
-//                        targetPositiveDimensions[currentTarget].getData()[0]);
-//                Matrix.multiplyMM(modelViewMatrixButton, 0,
-//                        vuforiaAppSession.getProjectionMatrix().getData(), 0,
-//                        modelViewMatrixButton, 0);
-
-        GLES20.glUseProgram(keyframeShaderID);
-
-        GLES20.glVertexAttribPointer(keyframeVertexHandle, 3,
-                GLES20.GL_FLOAT, false, 0, quadVertices);
-        GLES20.glVertexAttribPointer(keyframeNormalHandle, 3,
-                GLES20.GL_FLOAT, false, 0, quadNormals);
-        GLES20.glVertexAttribPointer(keyframeTexCoordHandle, 2,
-                GLES20.GL_FLOAT, false, 0, quadTexCoords);
-
-        GLES20.glEnableVertexAttribArray(keyframeVertexHandle);
-        GLES20.glEnableVertexAttribArray(keyframeNormalHandle);
-        GLES20.glEnableVertexAttribArray(keyframeTexCoordHandle);
-
-        GLES20.glActiveTexture(GLES20.GL_TEXTURE2);
-
-        // Depending on the status in which we are we choose the
-        // appropriate
-        // texture to display. Notice that unlike the video these are
-        // regular
-        // GL_TEXTURE_2D textures
-        switch (currentStatus[currentTarget])
-        {
-            case READY:
-                GLES20.glBindTexture(GLES20.GL_TEXTURE_2D,
-                        mTextures.get(2).mTextureID[0]);
-                break;
-            case REACHED_END:
-                GLES20.glBindTexture(GLES20.GL_TEXTURE_2D,
-                        mTextures.get(2).mTextureID[0]);
-                break;
-            case PAUSED:
-                GLES20.glBindTexture(GLES20.GL_TEXTURE_2D,
-                        mTextures.get(2).mTextureID[0]);
-                break;
-            case NOT_READY:
-                GLES20.glBindTexture(GLES20.GL_TEXTURE_2D,
-                        mTextures.get(3).mTextureID[0]);
-                break;
-            case ERROR:
-                GLES20.glBindTexture(GLES20.GL_TEXTURE_2D,
-                        mTextures.get(4).mTextureID[0]);
-                break;
-            default:
-                GLES20.glBindTexture(GLES20.GL_TEXTURE_2D,
-                        mTextures.get(3).mTextureID[0]);
-                break;
-        }
-
-        indexJ++;
-        indexJ = indexJ % mTextures.size();
-        while (!mTextures.get(indexJ).name.contains("penquan")) {
-            indexJ++;
-            indexJ = indexJ % mTextures.size();
-        }
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D,
-                mTextures.get(indexJ).mTextureID[0]);
-
-        GLES20.glUniformMatrix4fv(keyframeMVPMatrixHandle, 1, false,
-                modelViewProjectionButton, 0);
-        GLES20.glUniform1i(keyframeTexSampler2DHandle, 2);
-
-        // Render
-        GLES20.glDrawElements(GLES20.GL_TRIANGLES, NUM_QUAD_INDEX,
-                GLES20.GL_UNSIGNED_SHORT, quadIndices);
-
-        GLES20.glDisableVertexAttribArray(keyframeVertexHandle);
-        GLES20.glDisableVertexAttribArray(keyframeNormalHandle);
-        GLES20.glDisableVertexAttribArray(keyframeTexCoordHandle);
-
-        GLES20.glUseProgram(0);
-
-        // Finally we return the depth func to its original state
-//                GLES20.glDepthFunc(GLES20.GL_LESS);
-        GLES20.glDisable(GLES20.GL_BLEND);
-    }
-
-    private void render1(TrackableResult trackableResult, int currentTarget) {
+    private void render(TrackableResult trackableResult, int currentTarget, int layer, String path) {
         float[] modelViewMatrixKeyframe = Tool.convertPose2GLMatrix(
                 trackableResult.getPose()).getData();
         float[] modelViewProjectionKeyframe = new float[16];
-        // Matrix.translateM(modelViewMatrixKeyframe, 0, 0.0f, 0.0f,
-        // targetPositiveDimensions[currentTarget].getData()[0]);
+        if (layer > 0)
+            Matrix.translateM(modelViewMatrixKeyframe, 0, 0, 0,
+                    targetPositiveDimensions[currentTarget].getData()[1] / (20f / layer));
 
         // Here we use the aspect ratio of the keyframe since it
         // is likely that it is not a perfect square
@@ -943,136 +661,24 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer
         GLES20.glEnableVertexAttribArray(keyframeNormalHandle);
         GLES20.glEnableVertexAttribArray(keyframeTexCoordHandle);
 
-//        GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
-
-        // The first loaded texture from the assets folder is the
-        // keyframe
-
-//        indexJ++;
-//        indexJ = indexJ % mTextures.size();
-//        while (!mTextures.get(indexJ).name.contains("penquan")) {
-//            indexJ++;
-//            indexJ = indexJ % mTextures.size();
-//        }
-//        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D,
-//                mTextures.get(indexJ).mTextureID[0]);
-//        GLES20.glUniformMatrix4fv(keyframeMVPMatrixHandle, 1, false,
-//                modelViewProjectionKeyframe, 0);
-//        GLES20.glUniform1i(keyframeTexSampler2DHandle, 0);
-//
-//        // Render
-//        GLES20.glDrawElements(GLES20.GL_TRIANGLES, NUM_QUAD_INDEX,
-//                GLES20.GL_UNSIGNED_SHORT, quadIndices);
-
-        GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
-//        indexI++;
-//        indexI = indexI % mTextures.size();
-//        while (!mTextures.get(indexI).name.contains("dance")) {
-//            indexI++;
-//            indexI = indexI % mTextures.size();
-//        }
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D,
-                mTextures.get(0).mTextureID[0]);
-        GLES20.glUniformMatrix4fv(keyframeMVPMatrixHandle, 1, false,
-                modelViewProjectionKeyframe, 0);
-        GLES20.glUniform1i(keyframeTexSampler2DHandle, 0);
-
-        // Render
-        GLES20.glDrawElements(GLES20.GL_TRIANGLES, NUM_QUAD_INDEX,
-                GLES20.GL_UNSIGNED_SHORT, quadIndices);
-
-//                GLES20.glDrawArrays(GLES20.GL_TRIANGLES,0,4);
-        GLES20.glDisableVertexAttribArray(keyframeVertexHandle);
-        GLES20.glDisableVertexAttribArray(keyframeNormalHandle);
-        GLES20.glDisableVertexAttribArray(keyframeTexCoordHandle);
-
-        GLES20.glUseProgram(0);
-        GLES20.glDisable(GLES20.GL_BLEND);
-    }
-    private void render2(TrackableResult trackableResult, int currentTarget) {
-        float[] modelViewMatrixKeyframe = Tool.convertPose2GLMatrix(
-                trackableResult.getPose()).getData();
-        float[] modelViewProjectionKeyframe = new float[16];
-        // Matrix.translateM(modelViewMatrixKeyframe, 0, 0.0f, 0.0f,
-        // targetPositiveDimensions[currentTarget].getData()[0]);
-
-        // Here we use the aspect ratio of the keyframe since it
-        // is likely that it is not a perfect square
-
-        float ratio = 1.0f;
-        if (mTextures.get(currentTarget).mSuccess)
-            ratio = keyframeQuadAspectRatio[currentTarget];
-        else
-            ratio = targetPositiveDimensions[currentTarget].getData()[1]
-                    / targetPositiveDimensions[currentTarget].getData()[0];
-        Matrix.translateM(modelViewMatrixKeyframe,0,0,0,
-                targetPositiveDimensions[currentTarget].getData()[1]/20f);
-        Matrix.scaleM(modelViewMatrixKeyframe, 0,
-                targetPositiveDimensions[currentTarget].getData()[0],
-                targetPositiveDimensions[currentTarget].getData()[0]
-                        * ratio,
-                targetPositiveDimensions[currentTarget].getData()[0]);
-        Matrix.multiplyMM(modelViewProjectionKeyframe, 0,
-                vuforiaAppSession.getProjectionMatrix().getData(), 0,
-                modelViewMatrixKeyframe, 0);
-
-        //enable blending
-        GLES20.glEnable(GLES20.GL_BLEND);
-        GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
-
-        GLES20.glUseProgram(keyframeShaderID);
-
-        // Prepare for rendering the keyframe
-        GLES20.glVertexAttribPointer(keyframeVertexHandle, 3,
-                GLES20.GL_FLOAT, false, 0, quadVertices);
-        GLES20.glVertexAttribPointer(keyframeNormalHandle, 3,
-                GLES20.GL_FLOAT, false, 0, quadNormals);
-        GLES20.glVertexAttribPointer(keyframeTexCoordHandle, 2,
-                GLES20.GL_FLOAT, false, 0, quadTexCoords);
-
-        GLES20.glEnableVertexAttribArray(keyframeVertexHandle);
-        GLES20.glEnableVertexAttribArray(keyframeNormalHandle);
-        GLES20.glEnableVertexAttribArray(keyframeTexCoordHandle);
-
-        GLES20.glActiveTexture(GLES20.GL_TEXTURE1);
-
-        // The first loaded texture from the assets folder is the
-        // keyframe
-
-        indexJ++;
-        indexJ = indexJ % mTextures.size();
-        while (!mTextures.get(indexJ).name.contains("penquan")) {
-            indexJ++;
-            indexJ = indexJ % mTextures.size();
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0 + layer);
+        if (layer > 0)
+            index[layer]++;
+        index[layer] = index[layer] % mTextures.size();
+        while (!mTextures.get(index[layer]).name.contains(path)) {
+            index[layer]++;
+            index[layer] = index[layer] % mTextures.size();
         }
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D,
-                mTextures.get(indexJ).mTextureID[0]);
+                mTextures.get(index[layer]).mTextureID[0]);
         GLES20.glUniformMatrix4fv(keyframeMVPMatrixHandle, 1, false,
                 modelViewProjectionKeyframe, 0);
-        GLES20.glUniform1i(keyframeTexSampler2DHandle, 1);
+        GLES20.glUniform1i(keyframeTexSampler2DHandle, layer);
 
         // Render
         GLES20.glDrawElements(GLES20.GL_TRIANGLES, NUM_QUAD_INDEX,
                 GLES20.GL_UNSIGNED_SHORT, quadIndices);
 
-//        GLES20.glActiveTexture(GLES20.GL_TEXTURE1);
-//        indexI++;
-//        indexI = indexI % mTextures.size();
-//        while (!mTextures.get(indexI).name.contains("dance")) {
-//            indexI++;
-//            indexI = indexI % mTextures.size();
-//        }
-//        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D,
-//                mTextures.get(indexI).mTextureID[0]);
-//        GLES20.glUniformMatrix4fv(keyframeMVPMatrixHandle, 1, false,
-//                modelViewProjectionKeyframe, 0);
-//        GLES20.glUniform1i(keyframeTexSampler2DHandle, 1);
-//
-//        // Render
-//        GLES20.glDrawElements(GLES20.GL_TRIANGLES, NUM_QUAD_INDEX,
-//                GLES20.GL_UNSIGNED_SHORT, quadIndices);
-
-//                GLES20.glDrawArrays(GLES20.GL_TRIANGLES,0,4);
         GLES20.glDisableVertexAttribArray(keyframeVertexHandle);
         GLES20.glDisableVertexAttribArray(keyframeNormalHandle);
         GLES20.glDisableVertexAttribArray(keyframeTexCoordHandle);
@@ -1080,98 +686,6 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer
         GLES20.glUseProgram(0);
         GLES20.glDisable(GLES20.GL_BLEND);
     }
-    private void render3(TrackableResult trackableResult, int currentTarget) {
-        float[] modelViewMatrixKeyframe = Tool.convertPose2GLMatrix(
-                trackableResult.getPose()).getData();
-        float[] modelViewProjectionKeyframe = new float[16];
-        // Matrix.translateM(modelViewMatrixKeyframe, 0, 0.0f, 0.0f,
-        // targetPositiveDimensions[currentTarget].getData()[0]);
-
-        // Here we use the aspect ratio of the keyframe since it
-        // is likely that it is not a perfect square
-
-        float ratio = 1.0f;
-        if (mTextures.get(currentTarget).mSuccess)
-            ratio = keyframeQuadAspectRatio[currentTarget];
-        else
-            ratio = targetPositiveDimensions[currentTarget].getData()[1]
-                    / targetPositiveDimensions[currentTarget].getData()[0];
-        Matrix.translateM(modelViewMatrixKeyframe,0,0,0,
-                targetPositiveDimensions[currentTarget].getData()[1]/10f);
-        Matrix.scaleM(modelViewMatrixKeyframe, 0,
-                targetPositiveDimensions[currentTarget].getData()[0],
-                targetPositiveDimensions[currentTarget].getData()[0]
-                        * ratio,
-                targetPositiveDimensions[currentTarget].getData()[0]);
-        Matrix.multiplyMM(modelViewProjectionKeyframe, 0,
-                vuforiaAppSession.getProjectionMatrix().getData(), 0,
-                modelViewMatrixKeyframe, 0);
-
-        //enable blending
-        GLES20.glEnable(GLES20.GL_BLEND);
-        GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
-
-        GLES20.glUseProgram(keyframeShaderID);
-
-        // Prepare for rendering the keyframe
-        GLES20.glVertexAttribPointer(keyframeVertexHandle, 3,
-                GLES20.GL_FLOAT, false, 0, quadVertices);
-        GLES20.glVertexAttribPointer(keyframeNormalHandle, 3,
-                GLES20.GL_FLOAT, false, 0, quadNormals);
-        GLES20.glVertexAttribPointer(keyframeTexCoordHandle, 2,
-                GLES20.GL_FLOAT, false, 0, quadTexCoords);
-
-        GLES20.glEnableVertexAttribArray(keyframeVertexHandle);
-        GLES20.glEnableVertexAttribArray(keyframeNormalHandle);
-        GLES20.glEnableVertexAttribArray(keyframeTexCoordHandle);
-
-        GLES20.glActiveTexture(GLES20.GL_TEXTURE2);
-
-        // The first loaded texture from the assets folder is the
-        // keyframe
-
-        indexI++;
-        indexI = indexI % mTextures.size();
-        while (!mTextures.get(indexI).name.contains("dance")) {
-            indexI++;
-            indexI = indexI % mTextures.size();
-        }
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D,
-                mTextures.get(indexI).mTextureID[0]);
-        GLES20.glUniformMatrix4fv(keyframeMVPMatrixHandle, 1, false,
-                modelViewProjectionKeyframe, 0);
-        GLES20.glUniform1i(keyframeTexSampler2DHandle, 2);
-
-        // Render
-        GLES20.glDrawElements(GLES20.GL_TRIANGLES, NUM_QUAD_INDEX,
-                GLES20.GL_UNSIGNED_SHORT, quadIndices);
-
-//        GLES20.glActiveTexture(GLES20.GL_TEXTURE1);
-//        indexI++;
-//        indexI = indexI % mTextures.size();
-//        while (!mTextures.get(indexI).name.contains("dance")) {
-//            indexI++;
-//            indexI = indexI % mTextures.size();
-//        }
-//        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D,
-//                mTextures.get(indexI).mTextureID[0]);
-//        GLES20.glUniformMatrix4fv(keyframeMVPMatrixHandle, 1, false,
-//                modelViewProjectionKeyframe, 0);
-//        GLES20.glUniform1i(keyframeTexSampler2DHandle, 1);
-//
-//        // Render
-//        GLES20.glDrawElements(GLES20.GL_TRIANGLES, NUM_QUAD_INDEX,
-//                GLES20.GL_UNSIGNED_SHORT, quadIndices);
-
-//                GLES20.glDrawArrays(GLES20.GL_TRIANGLES,0,4);
-        GLES20.glDisableVertexAttribArray(keyframeVertexHandle);
-        GLES20.glDisableVertexAttribArray(keyframeNormalHandle);
-        GLES20.glDisableVertexAttribArray(keyframeTexCoordHandle);
-
-        GLES20.glUseProgram(0);
-        GLES20.glDisable(GLES20.GL_BLEND);
-    }
-
 
     boolean isTapOnScreenInsideTarget(int target, float x, float y)
     {
