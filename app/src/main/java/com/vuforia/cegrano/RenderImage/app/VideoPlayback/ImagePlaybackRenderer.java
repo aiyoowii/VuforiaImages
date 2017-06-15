@@ -28,7 +28,6 @@ import com.vuforia.VIDEO_BACKGROUND_REFLECTION;
 import com.vuforia.Vec2F;
 import com.vuforia.Vec3F;
 import com.vuforia.Vuforia;
-import com.vuforia.cegrano.RenderImage.app.VideoPlayback.VideoPlayerHelper.MEDIA_STATE;
 import com.vuforia.cegrano.SampleApplication.SampleApplicationSession;
 import com.vuforia.cegrano.SampleApplication.utils.SampleMath;
 import com.vuforia.cegrano.SampleApplication.utils.SampleUtils;
@@ -65,10 +64,8 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer {
     // Needed to calculate whether a screen tap is inside the target
     Matrix44F modelViewMatrix[] = new Matrix44F[ImagePlayback.NUM_TARGETS];
     boolean isTracking[] = new boolean[ImagePlayback.NUM_TARGETS];
-    MEDIA_STATE currentStatus[] = new MEDIA_STATE[ImagePlayback.NUM_TARGETS];
     // These hold the aspect ratio of both the video and the
     // keyframe
-    float videoQuadAspectRatio[] = new float[ImagePlayback.NUM_TARGETS];
     float keyframeQuadAspectRatio[] = new float[ImagePlayback.NUM_TARGETS];
     // Keyframe and icon rendering specific
     private int keyframeShaderID = 0;

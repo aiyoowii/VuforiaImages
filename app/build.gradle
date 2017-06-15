@@ -1,16 +1,20 @@
 apply plugin: 'com.android.application'
 
-def VUFORIA_SDK_DIR = '../../vuforia-sdk-android-6-2-10'
-def NATIVE_LIB_DIR = 'build/lib'
-def JAR_DIR = 'build/java/vuforia'
+//def VUFORIA_SDK_DIR = '../../vuforia-sdk-android-6-2-10'
+//def NATIVE_LIB_DIR = 'build/lib'
+//def JAR_DIR = 'build/java/vuforia'
 
 android {
     compileSdkVersion 25
     buildToolsVersion "25.0.3"
 
+//    sourceSets.main {
+//        jni.srcDirs = []
+//        jniLibs.srcDir "$VUFORIA_SDK_DIR/$NATIVE_LIB_DIR/"
+//    }
+
     sourceSets.main {
-        jni.srcDirs = []
-        jniLibs.srcDir "$VUFORIA_SDK_DIR/$NATIVE_LIB_DIR/"
+        jniLibs.srcDirs = ['libs']
     }
 
     defaultConfig {
@@ -41,5 +45,6 @@ android {
 }
 
 dependencies {
-    compile files("$VUFORIA_SDK_DIR/$JAR_DIR/Vuforia.jar")
+    compile files("libs/Vuforia.jar")
+//    compile fileTree(dir: 'libs', include: ['*.jar'])
 }
