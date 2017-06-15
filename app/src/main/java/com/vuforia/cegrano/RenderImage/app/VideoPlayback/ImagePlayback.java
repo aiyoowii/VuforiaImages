@@ -55,8 +55,7 @@ import java.util.Vector;
 
 // The AR activity for the VideoPlayback sample.
 public class ImagePlayback extends Activity implements
-    SampleApplicationControl, SampleAppMenuInterface
-{
+        SampleApplicationControl, SampleAppMenuInterface {
     // Movie for the Targets:
     public static final int NUM_TARGETS = 2;
     public static final int STONES = 0;
@@ -89,14 +88,13 @@ public class ImagePlayback extends Activity implements
     private boolean mPlayFullscreenVideo = false;
     private SampleAppMenu mSampleAppMenu;
     private LoadingDialogHandler loadingDialogHandler = new LoadingDialogHandler(
-        this);
+            this);
     // Alert Dialog used to display SDK errors
     private AlertDialog mErrorDialog;
-    
+
     // Called when the activity first starts or the user navigates back
     // to an activity.
-    protected void onCreate(Bundle savedInstanceState)
-    {
+    protected void onCreate(Bundle savedInstanceState) {
         Log.d(LOGTAG, "onCreate");
         super.onCreate(savedInstanceState);
 
@@ -107,17 +105,22 @@ public class ImagePlayback extends Activity implements
         startLoadingAnimation();
 
         vuforiaAppSession
-            .initAR(this, ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+                .initAR(this, ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         // Load any sample specific textures:
         mTextures = new Vector<Texture>();
-        loadTextures();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                loadTextures();
+            }
+        }).start();
 
         // Create the gesture detector that will handle the single and
         // double taps:
         mSimpleListener = new SimpleOnGestureListener();
         mGestureDetector = new GestureDetector(getApplicationContext(),
-            mSimpleListener);
+                mSimpleListener);
 
         mVideoPlayerHelper = new VideoPlayerHelper[NUM_TARGETS];
         mSeekPosition = new int[NUM_TARGETS];
@@ -126,8 +129,7 @@ public class ImagePlayback extends Activity implements
 
         // Create the video player helper that handles the playback of the movie
         // for the targets:
-        for (int i = 0; i < NUM_TARGETS; i++)
-        {
+        for (int i = 0; i < NUM_TARGETS; i++) {
             mVideoPlayerHelper[i] = new VideoPlayerHelper();
             mVideoPlayerHelper[i].init();
             mVideoPlayerHelper[i].setActivity(this);
@@ -136,43 +138,35 @@ public class ImagePlayback extends Activity implements
         mMovieName[1] = "VideoPlayback/wjl.mp4";
 
         // Set the double tap listener:
-        mGestureDetector.setOnDoubleTapListener(new OnDoubleTapListener()
-        {
-            public boolean onDoubleTap(MotionEvent e)
-            {
-               // We do not react to this event
-               return false;
+        mGestureDetector.setOnDoubleTapListener(new OnDoubleTapListener() {
+            public boolean onDoubleTap(MotionEvent e) {
+                // We do not react to this event
+                return false;
             }
 
 
-            public boolean onDoubleTapEvent(MotionEvent e)
-            {
+            public boolean onDoubleTapEvent(MotionEvent e) {
                 // We do not react to this event
                 return false;
             }
 
 
             // Handle the single tap
-            public boolean onSingleTapConfirmed(MotionEvent e)
-            {
+            public boolean onSingleTapConfirmed(MotionEvent e) {
                 boolean isSingleTapHandled = false;
                 // Do not react if the StartupScreen is being displayed
-                for (int i = 0; i < NUM_TARGETS; i++)
-                {
+                for (int i = 0; i < NUM_TARGETS; i++) {
                     // Verify that the tap happened inside the target
-                    if (mRenderer!= null && mRenderer.isTapOnScreenInsideTarget(i, e.getX(),
-                        e.getY()))
-                    {
+                    if (mRenderer != null && mRenderer.isTapOnScreenInsideTarget(i, e.getX(),
+                            e.getY())) {
                         // Check if it is playable on texture
-                        if (mVideoPlayerHelper[i].isPlayableOnTexture())
-                        {
+                        if (mVideoPlayerHelper[i].isPlayableOnTexture()) {
                             // We can play only if the movie was paused, ready
                             // or stopped
                             if ((mVideoPlayerHelper[i].getStatus() == MEDIA_STATE.PAUSED)
-                                || (mVideoPlayerHelper[i].getStatus() == MEDIA_STATE.READY)
-                                || (mVideoPlayerHelper[i].getStatus() == MEDIA_STATE.STOPPED)
-                                || (mVideoPlayerHelper[i].getStatus() == MEDIA_STATE.REACHED_END))
-                            {
+                                    || (mVideoPlayerHelper[i].getStatus() == MEDIA_STATE.READY)
+                                    || (mVideoPlayerHelper[i].getStatus() == MEDIA_STATE.STOPPED)
+                                    || (mVideoPlayerHelper[i].getStatus() == MEDIA_STATE.REACHED_END)) {
                                 // Pause all other media
                                 pauseAll(i);
 
@@ -181,20 +175,18 @@ public class ImagePlayback extends Activity implements
                                     mSeekPosition[i] = 0;
 
                                 mVideoPlayerHelper[i].play(mPlayFullscreenVideo,
-                                    mSeekPosition[i]);
+                                        mSeekPosition[i]);
                                 mSeekPosition[i] = VideoPlayerHelper.CURRENT_POSITION;
-                            } else if (mVideoPlayerHelper[i].getStatus() == MEDIA_STATE.PLAYING)
-                            {
+                            } else if (mVideoPlayerHelper[i].getStatus() == MEDIA_STATE.PLAYING) {
                                 // If it is playing then we pause it
                                 mVideoPlayerHelper[i].pause();
                             }
-                        } else if (mVideoPlayerHelper[i].isPlayableFullscreen())
-                        {
+                        } else if (mVideoPlayerHelper[i].isPlayableFullscreen()) {
                             // If it isn't playable on texture
                             // Either because it wasn't requested or because it
                             // isn't supported then request playback fullscreen.
                             mVideoPlayerHelper[i].play(true,
-                                VideoPlayerHelper.CURRENT_POSITION);
+                                    VideoPlayerHelper.CURRENT_POSITION);
                         }
 
                         isSingleTapHandled = true;
@@ -211,11 +203,10 @@ public class ImagePlayback extends Activity implements
             }
         });
     }
-    
+
     // We want to load specific textures from the APK, which we will later
     // use for rendering.
-    private void loadTextures()
-    {
+    private void loadTextures() {
 
         mTextures.add(Texture.loadTextureFromApk("abc.jpeg",
                 getAssets()));
@@ -232,65 +223,53 @@ public class ImagePlayback extends Activity implements
             e.printStackTrace();
         }
     }
-    
+
     // Called when the activity will start interacting with the user.
-    protected void onResume()
-    {
+    protected void onResume() {
         Log.d(LOGTAG, "onResume");
         super.onResume();
 
         // This is needed for some Droid devices to force portrait
-        if (mIsDroidDevice)
-        {
+        if (mIsDroidDevice) {
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         }
 
-        try
-        {
+        try {
             vuforiaAppSession.resumeAR();
-        } catch (SampleApplicationException e)
-        {
+        } catch (SampleApplicationException e) {
             Log.e(LOGTAG, e.getString());
         }
 
         // Resume the GL view:
-        if (mGlView != null)
-        {
+        if (mGlView != null) {
             mGlView.setVisibility(View.VISIBLE);
             mGlView.onResume();
         }
 
         // Reload all the movies
-        if (mRenderer != null)
-        {
-            for (int i = 0; i < NUM_TARGETS; i++)
-            {
-                if (!mReturningFromFullScreen)
-                {
+        if (mRenderer != null) {
+            for (int i = 0; i < NUM_TARGETS; i++) {
+                if (!mReturningFromFullScreen) {
                     mRenderer.requestLoad(i, mMovieName[i], mSeekPosition[i],
-                        false);
-                } else
-                {
+                            false);
+                } else {
                     mRenderer.requestLoad(i, mMovieName[i], mSeekPosition[i],
-                        mWasPlaying[i]);
+                            mWasPlaying[i]);
                 }
             }
         }
 
         mReturningFromFullScreen = false;
     }
-    
+
     // Called when returning from the full screen player
-    protected void onActivityResult(int requestCode, int resultCode, Intent data)
-    {
-        if (requestCode == 1)
-        {
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == 1) {
 
             mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
-            if (resultCode == RESULT_OK)
-            {
+            if (resultCode == RESULT_OK) {
                 // The following values are used to indicate the position in
                 // which the video was being played and whether it was being
                 // played or not:
@@ -298,49 +277,42 @@ public class ImagePlayback extends Activity implements
                 mReturningFromFullScreen = true;
 
                 // Find the movie that was being played full screen
-                for (int i = 0; i < NUM_TARGETS; i++)
-                {
-                    if (movieBeingPlayed.compareTo(mMovieName[i]) == 0)
-                    {
+                for (int i = 0; i < NUM_TARGETS; i++) {
+                    if (movieBeingPlayed.compareTo(mMovieName[i]) == 0) {
                         mSeekPosition[i] = data.getIntExtra(
-                            "currentSeekPosition", 0);
+                                "currentSeekPosition", 0);
                         mWasPlaying[i] = false;
                     }
                 }
             }
         }
     }
-    
-    public void onConfigurationChanged(Configuration config)
-    {
+
+    public void onConfigurationChanged(Configuration config) {
         Log.d(LOGTAG, "onConfigurationChanged");
         super.onConfigurationChanged(config);
 
         vuforiaAppSession.onConfigurationChanged();
     }
-    
+
     // Called when the system is about to start resuming a previous activity.
-    protected void onPause()
-    {
+    protected void onPause() {
         Log.d(LOGTAG, "onPause");
         super.onPause();
 
-        if (mGlView != null)
-        {
+        if (mGlView != null) {
             mGlView.setVisibility(View.INVISIBLE);
             mGlView.onPause();
         }
 
         // Store the playback state of the movies and unload them:
-        for (int i = 0; i < NUM_TARGETS; i++)
-        {
+        for (int i = 0; i < NUM_TARGETS; i++) {
             // If the activity is paused we need to store the position in which
             // this was currently playing:
-            if (mVideoPlayerHelper[i].isPlayableOnTexture())
-            {
+            if (mVideoPlayerHelper[i].isPlayableOnTexture()) {
                 mSeekPosition[i] = mVideoPlayerHelper[i].getCurrentPosition();
                 mWasPlaying[i] = mVideoPlayerHelper[i].getStatus() == MEDIA_STATE.PLAYING ? true
-                    : false;
+                        : false;
             }
 
             // We also need to release the resources used by the helper, though
@@ -351,34 +323,28 @@ public class ImagePlayback extends Activity implements
 
         mReturningFromFullScreen = false;
 
-        try
-        {
+        try {
             vuforiaAppSession.pauseAR();
-        } catch (SampleApplicationException e)
-        {
+        } catch (SampleApplicationException e) {
             Log.e(LOGTAG, e.getString());
         }
     }
-    
+
     // The final call you receive before your activity is destroyed.
-    protected void onDestroy()
-    {
+    protected void onDestroy() {
         Log.d(LOGTAG, "onDestroy");
         super.onDestroy();
 
-        for (int i = 0; i < NUM_TARGETS; i++)
-        {
+        for (int i = 0; i < NUM_TARGETS; i++) {
             // If the activity is destroyed we need to release all resources:
             if (mVideoPlayerHelper[i] != null)
                 mVideoPlayerHelper[i].deinit();
             mVideoPlayerHelper[i] = null;
         }
 
-        try
-        {
+        try {
             vuforiaAppSession.stopAR();
-        } catch (SampleApplicationException e)
-        {
+        } catch (SampleApplicationException e) {
             Log.e(LOGTAG, e.getString());
         }
 
@@ -388,59 +354,52 @@ public class ImagePlayback extends Activity implements
 
         System.gc();
     }
-    
+
     // Pause all movies except one
     // if the value of 'except' is -1 then
     // do a blanket pause
-    private void pauseAll(int except)
-    {
+    private void pauseAll(int except) {
         // And pause all the playing videos:
-        for (int i = 0; i < NUM_TARGETS; i++)
-        {
+        for (int i = 0; i < NUM_TARGETS; i++) {
             // We can make one exception to the pause all calls:
-            if (i != except)
-            {
+            if (i != except) {
                 // Check if the video is playable on texture
-                if (mVideoPlayerHelper[i].isPlayableOnTexture())
-                {
+                if (mVideoPlayerHelper[i].isPlayableOnTexture()) {
                     // If it is playing then we pause it
                     mVideoPlayerHelper[i].pause();
                 }
             }
         }
     }
-    
+
     // Do not exit immediately and instead show the startup screen
-    public void onBackPressed()
-    {
+    public void onBackPressed() {
         pauseAll(-1);
         super.onBackPressed();
     }
-    
-    private void startLoadingAnimation()
-    {
+
+    private void startLoadingAnimation() {
         mUILayout = (RelativeLayout) View.inflate(this, R.layout.camera_overlay,
-            null);
+                null);
 
         mUILayout.setVisibility(View.VISIBLE);
         mUILayout.setBackgroundColor(Color.BLACK);
 
         // Gets a reference to the loading dialog
         loadingDialogHandler.mLoadingDialogContainer = mUILayout
-            .findViewById(R.id.loading_indicator);
+                .findViewById(R.id.loading_indicator);
 
         // Shows the loading indicator at start
         loadingDialogHandler
-            .sendEmptyMessage(LoadingDialogHandler.SHOW_LOADING_DIALOG);
+                .sendEmptyMessage(LoadingDialogHandler.SHOW_LOADING_DIALOG);
 
         // Adds the inflated layout to the view
         addContentView(mUILayout, new LayoutParams(LayoutParams.MATCH_PARENT,
-            LayoutParams.MATCH_PARENT));
+                LayoutParams.MATCH_PARENT));
     }
-    
+
     // Initializes AR application components.
-    private void initApplicationAR()
-    {
+    private void initApplicationAR() {
         // Create OpenGL ES view:
         int depthSize = 16;
         int stencilSize = 0;
@@ -456,29 +415,26 @@ public class ImagePlayback extends Activity implements
         // must happen when the surface has been created. This means that we
         // can't load the movie from this thread (GUI) but instead we must
         // tell the GL thread to load it once the surface has been created.
-        for (int i = 0; i < NUM_TARGETS; i++)
-        {
+        for (int i = 0; i < NUM_TARGETS; i++) {
             mRenderer.setVideoPlayerHelper(i, mVideoPlayerHelper[i]);
             mRenderer.requestLoad(i, mMovieName[i], 0, false);
         }
 
         mGlView.setRenderer(mRenderer);
 
-        for (int i = 0; i < NUM_TARGETS; i++)
-        {
-            float[] temp = { 0f, 0f, 0f };
+        for (int i = 0; i < NUM_TARGETS; i++) {
+            float[] temp = {0f, 0f, 0f};
             mRenderer.targetPositiveDimensions[i].setData(temp);
             mRenderer.imagePlaybackTextureID[i] = -1;
         }
 
     }
-    
+
     // We do not handle the touch event here, we just forward it to the
     // gesture detector
-    public boolean onTouchEvent(MotionEvent event)
-    {
+    public boolean onTouchEvent(MotionEvent event) {
         boolean result = false;
-        if ( mSampleAppMenu != null )
+        if (mSampleAppMenu != null)
             result = mSampleAppMenu.processEvent(event);
 
         // Process the Gestures
@@ -487,60 +443,53 @@ public class ImagePlayback extends Activity implements
 
         return result;
     }
-    
+
     @Override
-    public boolean doInitTrackers()
-    {
+    public boolean doInitTrackers() {
         // Indicate if the trackers were initialized correctly
         boolean result = true;
 
         // Initialize the image tracker:
         TrackerManager trackerManager = TrackerManager.getInstance();
         Tracker tracker = trackerManager.initTracker(ObjectTracker
-            .getClassType());
-        if (tracker == null)
-        {
+                .getClassType());
+        if (tracker == null) {
             Log.d(LOGTAG, "Failed to initialize ObjectTracker.");
             result = false;
         }
 
         return result;
     }
-    
+
     @Override
-    public boolean doLoadTrackersData()
-    {
+    public boolean doLoadTrackersData() {
         // Get the image tracker:
         TrackerManager trackerManager = TrackerManager.getInstance();
         ObjectTracker objectTracker = (ObjectTracker) trackerManager
-            .getTracker(ObjectTracker.getClassType());
-        if (objectTracker == null)
-        {
+                .getTracker(ObjectTracker.getClassType());
+        if (objectTracker == null) {
             Log.d(
-                LOGTAG,
-                "Failed to load tracking data set because the ObjectTracker has not been initialized.");
+                    LOGTAG,
+                    "Failed to load tracking data set because the ObjectTracker has not been initialized.");
             return false;
         }
 
         // Create the data sets:
         dataSetStonesAndChips = objectTracker.createDataSet();
-        if (dataSetStonesAndChips == null)
-        {
+        if (dataSetStonesAndChips == null) {
             Log.d(LOGTAG, "Failed to create a new tracking data.");
             return false;
         }
 
         // Load the data sets:
         if (!dataSetStonesAndChips.load("test.xml",
-            STORAGE_TYPE.STORAGE_APPRESOURCE))
-        {
+                STORAGE_TYPE.STORAGE_APPRESOURCE)) {
             Log.d(LOGTAG, "Failed to load data set.");
             return false;
         }
 
         // Activate the data set:
-        if (!objectTracker.activateDataSet(dataSetStonesAndChips))
-        {
+        if (!objectTracker.activateDataSet(dataSetStonesAndChips)) {
             Log.d(LOGTAG, "Failed to activate data set.");
             return false;
         }
@@ -548,17 +497,15 @@ public class ImagePlayback extends Activity implements
         Log.d(LOGTAG, "Successfully loaded and activated data set.");
         return true;
     }
-    
+
     @Override
-    public boolean doStartTrackers()
-    {
+    public boolean doStartTrackers() {
         // Indicate if the trackers were started correctly
         boolean result = true;
 
         Tracker objectTracker = TrackerManager.getInstance().getTracker(
-            ObjectTracker.getClassType());
-        if (objectTracker != null)
-        {
+                ObjectTracker.getClassType());
+        if (objectTracker != null) {
             objectTracker.start();
             Vuforia.setHint(HINT.HINT_MAX_SIMULTANEOUS_IMAGE_TARGETS, 2);
         } else
@@ -566,15 +513,14 @@ public class ImagePlayback extends Activity implements
 
         return result;
     }
-    
+
     @Override
-    public boolean doStopTrackers()
-    {
+    public boolean doStopTrackers() {
         // Indicate if the trackers were stopped correctly
         boolean result = true;
 
         Tracker objectTracker = TrackerManager.getInstance().getTracker(
-            ObjectTracker.getClassType());
+                ObjectTracker.getClassType());
         if (objectTracker != null)
             objectTracker.stop();
         else
@@ -582,38 +528,33 @@ public class ImagePlayback extends Activity implements
 
         return result;
     }
-    
+
     @Override
-    public boolean doUnloadTrackersData()
-    {
+    public boolean doUnloadTrackersData() {
         // Indicate if the trackers were unloaded correctly
         boolean result = true;
 
         // Get the image tracker:
         TrackerManager trackerManager = TrackerManager.getInstance();
         ObjectTracker objectTracker = (ObjectTracker) trackerManager
-            .getTracker(ObjectTracker.getClassType());
-        if (objectTracker == null)
-        {
+                .getTracker(ObjectTracker.getClassType());
+        if (objectTracker == null) {
             Log.d(
-                LOGTAG,
-                "Failed to destroy the tracking data set because the ObjectTracker has not been initialized.");
+                    LOGTAG,
+                    "Failed to destroy the tracking data set because the ObjectTracker has not been initialized.");
             return false;
         }
 
-        if (dataSetStonesAndChips != null)
-        {
+        if (dataSetStonesAndChips != null) {
             if (objectTracker.getActiveDataSet(0) == dataSetStonesAndChips
-                && !objectTracker.deactivateDataSet(dataSetStonesAndChips))
-            {
+                    && !objectTracker.deactivateDataSet(dataSetStonesAndChips)) {
                 Log.d(
-                    LOGTAG,
-                    "Failed to destroy the tracking data set StonesAndChips because the data set could not be deactivated.");
+                        LOGTAG,
+                        "Failed to destroy the tracking data set StonesAndChips because the data set could not be deactivated.");
                 result = false;
-            } else if (!objectTracker.destroyDataSet(dataSetStonesAndChips))
-            {
+            } else if (!objectTracker.destroyDataSet(dataSetStonesAndChips)) {
                 Log.d(LOGTAG,
-                    "Failed to destroy the tracking data set StonesAndChips.");
+                        "Failed to destroy the tracking data set StonesAndChips.");
                 result = false;
             }
 
@@ -622,10 +563,9 @@ public class ImagePlayback extends Activity implements
 
         return result;
     }
-    
+
     @Override
-    public boolean doDeinitTrackers()
-    {
+    public boolean doDeinitTrackers() {
         // Indicate if the trackers were deinitialized correctly
         boolean result = true;
 
@@ -635,13 +575,11 @@ public class ImagePlayback extends Activity implements
 
         return result;
     }
-    
-    @Override
-    public void onInitARDone(SampleApplicationException exception)
-    {
 
-        if (exception == null)
-        {
+    @Override
+    public void onInitARDone(SampleApplicationException exception) {
+
+        if (exception == null) {
             initApplicationAR();
 
             mRenderer.mIsActive = true;
@@ -651,75 +589,66 @@ public class ImagePlayback extends Activity implements
             // BEFORE the camera is started and video
             // background is configured.
             addContentView(mGlView, new LayoutParams(LayoutParams.MATCH_PARENT,
-                LayoutParams.MATCH_PARENT));
+                    LayoutParams.MATCH_PARENT));
 
             // Sets the UILayout to be drawn in front of the camera
             mUILayout.bringToFront();
 
             // Hides the Loading Dialog
             loadingDialogHandler
-                .sendEmptyMessage(LoadingDialogHandler.HIDE_LOADING_DIALOG);
+                    .sendEmptyMessage(LoadingDialogHandler.HIDE_LOADING_DIALOG);
 
             // Sets the layout background to transparent
             mUILayout.setBackgroundColor(Color.TRANSPARENT);
 
-            try
-            {
+            try {
                 vuforiaAppSession.startAR(CameraDevice.CAMERA_DIRECTION.CAMERA_DIRECTION_DEFAULT);
-            } catch (SampleApplicationException e)
-            {
+            } catch (SampleApplicationException e) {
                 Log.e(LOGTAG, e.getString());
             }
 
             boolean result = CameraDevice.getInstance().setFocusMode(
-                CameraDevice.FOCUS_MODE.FOCUS_MODE_CONTINUOUSAUTO);
+                    CameraDevice.FOCUS_MODE.FOCUS_MODE_CONTINUOUSAUTO);
 
             if (!result)
                 Log.e(LOGTAG, "Unable to enable continuous autofocus");
 
             mSampleAppMenu = new SampleAppMenu(this, this, "Video Playback",
-                mGlView, mUILayout, null);
+                    mGlView, mUILayout, null);
             setSampleAppMenuSettings();
 
             mIsInitialized = true;
 
-        } else
-        {
+        } else {
             Log.e(LOGTAG, exception.getString());
             showInitializationErrorMessage(exception.getString());
         }
 
     }
-    
+
     // Shows initialization error messages as System dialogs
-    public void showInitializationErrorMessage(String message)
-    {
+    public void showInitializationErrorMessage(String message) {
         final String errorMessage = message;
-        runOnUiThread(new Runnable()
-        {
-            public void run()
-            {
-                if (mErrorDialog != null)
-                {
+        runOnUiThread(new Runnable() {
+            public void run() {
+                if (mErrorDialog != null) {
                     mErrorDialog.dismiss();
                 }
 
                 // Generates an Alert Dialog to show the error message
                 AlertDialog.Builder builder = new AlertDialog.Builder(
-                    ImagePlayback.this);
+                        ImagePlayback.this);
                 builder
-                    .setMessage(errorMessage)
-                    .setTitle(getString(R.string.INIT_ERROR))
-                    .setCancelable(false)
-                    .setIcon(0)
-                    .setPositiveButton("OK",
-                        new DialogInterface.OnClickListener()
-                        {
-                            public void onClick(DialogInterface dialog, int id)
-                            {
-                                finish();
-                            }
-                        });
+                        .setMessage(errorMessage)
+                        .setTitle(getString(R.string.INIT_ERROR))
+                        .setCancelable(false)
+                        .setIcon(0)
+                        .setPositiveButton("OK",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        finish();
+                                    }
+                                });
 
                 mErrorDialog = builder.create();
                 mErrorDialog.show();
@@ -728,60 +657,53 @@ public class ImagePlayback extends Activity implements
     }
 
     @Override
-    public void onVuforiaUpdate(State state)
-    {
+    public void onVuforiaUpdate(State state) {
     }
-    
+
     // This method sets the menu's settings
-    private void setSampleAppMenuSettings()
-    {
+    private void setSampleAppMenuSettings() {
         SampleAppMenuGroup group;
-        
+
         group = mSampleAppMenu.addGroup("", false);
         group.addTextItem(getString(R.string.menu_back), -1);
-        
+
         group = mSampleAppMenu.addGroup("", true);
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH)
-        {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
             group.addSelectionItem(getString(R.string.menu_playFullscreenVideo),
-                CMD_FULLSCREEN_VIDEO, mPlayFullscreenVideo);
+                    CMD_FULLSCREEN_VIDEO, mPlayFullscreenVideo);
         }
-        
+
         mSampleAppMenu.attachMenu();
     }
-    
-    
+
+
     @Override
-    public boolean menuProcess(int command)
-    {
-        
+    public boolean menuProcess(int command) {
+
         boolean result = true;
-        
-        switch (command)
-        {
+
+        switch (command) {
             case CMD_BACK:
                 finish();
                 break;
-            
+
             case CMD_FULLSCREEN_VIDEO:
                 mPlayFullscreenVideo = !mPlayFullscreenVideo;
-                
-                for(int i = 0; i < mVideoPlayerHelper.length; i++)
-                {
-                    if (mVideoPlayerHelper[i].getStatus() == MEDIA_STATE.PLAYING)
-                    {
+
+                for (int i = 0; i < mVideoPlayerHelper.length; i++) {
+                    if (mVideoPlayerHelper[i].getStatus() == MEDIA_STATE.PLAYING) {
                         // If it is playing then we pause it
                         mVideoPlayerHelper[i].pause();
-                        
+
                         mVideoPlayerHelper[i].play(true,
-                            mSeekPosition[i]);
+                                mSeekPosition[i]);
                     }
                 }
                 break;
-            
+
         }
-        
+
         return result;
     }
-    
+
 }

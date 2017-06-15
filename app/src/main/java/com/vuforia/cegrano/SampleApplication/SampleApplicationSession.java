@@ -35,65 +35,62 @@ import com.vuforia.Vuforia.UpdateCallbackInterface;
 import com.vuforia.cegrano.RenderImage.R;
 
 
-public class SampleApplicationSession implements UpdateCallbackInterface
-{
-    
+public class SampleApplicationSession implements UpdateCallbackInterface {
+
     private static final String LOGTAG = "Vuforia_Sample";
-    
+
     // Reference to the current activity
     private Activity mActivity;
     private SampleApplicationControl mSessionControl;
-    
+
     // Flags
     private boolean mStarted = false;
     private boolean mCameraRunning = false;
-    
+
     // Display size of the device:
     private int mScreenWidth = 0;
     private int mScreenHeight = 0;
-    
+
     // The async tasks to initialize the Vuforia SDK:
     private InitVuforiaTask mInitVuforiaTask;
     private LoadTrackerTask mLoadTrackerTask;
-    
+
     // An object used for synchronizing Vuforia initialization, dataset loading
     // and the Android onDestroy() life cycle event. If the application is
     // destroyed while a data set is still being loaded, then we wait for the
     // loading operation to finish before shutting down Vuforia:
     private Object mShutdownLock = new Object();
-    
+
     // Vuforia initialization flags:
     private int mVuforiaFlags = 0;
-    
+
     // Holds the camera configuration to use upon resuming
     private int mCamera = CameraDevice.CAMERA_DIRECTION.CAMERA_DIRECTION_DEFAULT;
-    
+
     // Stores the projection matrix to use for rendering purposes
     private Matrix44F mProjectionMatrix;
 
     // Stores viewport to be used for rendering purposes
     private int[] mViewport;
- 
+
     // Stores orientation
     private boolean mIsPortrait = false;
-    
-    
-    public SampleApplicationSession(SampleApplicationControl sessionControl)
-    {
+
+
+    public SampleApplicationSession(SampleApplicationControl sessionControl) {
         mSessionControl = sessionControl;
     }
-    
-    
+
+
     // Initializes Vuforia and sets up preferences.
-    public void initAR(Activity activity, int screenOrientation)
-    {
+    public void initAR(Activity activity, int screenOrientation) {
         SampleApplicationException vuforiaException = null;
         mActivity = activity;
-        
+
         if ((screenOrientation == ActivityInfo.SCREEN_ORIENTATION_SENSOR)
-            && (Build.VERSION.SDK_INT > Build.VERSION_CODES.FROYO))
+                && (Build.VERSION.SDK_INT > Build.VERSION_CODES.FROYO))
             screenOrientation = ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR;
-        
+
         // Use an OrientationChangeListener here to capture all orientation changes.  Android
         // will not send an Activity.onConfigurationChanged() callback on a 180 degree rotation,
         // ie: Left Landscape to Right Landscape.  Vuforia needs to react to this change and the
@@ -104,271 +101,242 @@ public class SampleApplicationSession implements UpdateCallbackInterface
             @Override
             public void onOrientationChanged(int i) {
                 int activityRotation = mActivity.getWindowManager().getDefaultDisplay().getRotation();
-                if(mLastRotation != activityRotation)
-                {
+                if (mLastRotation != activityRotation) {
                     // Signal the ApplicationSession to refresh the projection matrix
                     setProjectionMatrix();
                     mLastRotation = activityRotation;
                 }
             }
         };
-        
-        if(orientationEventListener.canDetectOrientation())
+
+        if (orientationEventListener.canDetectOrientation())
             orientationEventListener.enable();
 
         // Apply screen orientation
         mActivity.setRequestedOrientation(screenOrientation);
-        
+
         updateActivityOrientation();
-        
+
         // Query display dimensions:
         storeScreenDimensions();
-        
+
         // As long as this window is visible to the user, keep the device's
         // screen turned on and bright:
         mActivity.getWindow().setFlags(
-            WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
-            WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        
+                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
+                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
         mVuforiaFlags = Vuforia.GL_20;
-        
+
         // Initialize Vuforia SDK asynchronously to avoid blocking the
         // main (UI) thread.
         //
         // NOTE: This task instance must be created and invoked on the
         // UI thread and it can be executed only once!
-        if (mInitVuforiaTask != null)
-        {
+        if (mInitVuforiaTask != null) {
             String logMessage = "Cannot initialize SDK twice";
             vuforiaException = new SampleApplicationException(
-                SampleApplicationException.VUFORIA_ALREADY_INITIALIZATED,
-                logMessage);
+                    SampleApplicationException.VUFORIA_ALREADY_INITIALIZATED,
+                    logMessage);
             Log.e(LOGTAG, logMessage);
         }
-        
-        if (vuforiaException == null)
-        {
-            try
-            {
+
+        if (vuforiaException == null) {
+            try {
                 mInitVuforiaTask = new InitVuforiaTask();
                 mInitVuforiaTask.execute();
-            } catch (Exception e)
-            {
+            } catch (Exception e) {
                 String logMessage = "Initializing Vuforia SDK failed";
                 vuforiaException = new SampleApplicationException(
-                    SampleApplicationException.INITIALIZATION_FAILURE,
-                    logMessage);
+                        SampleApplicationException.INITIALIZATION_FAILURE,
+                        logMessage);
                 Log.e(LOGTAG, logMessage);
             }
         }
-        
+
         if (vuforiaException != null)
             mSessionControl.onInitARDone(vuforiaException);
     }
-    
-    
+
+
     // Starts Vuforia, initialize and starts the camera and start the trackers
-    public void startAR(int camera) throws SampleApplicationException
-    {
+    public void startAR(int camera) throws SampleApplicationException {
         String error;
-        if(mCameraRunning)
-        {
-        	error = "Camera already running, unable to open again";
-        	Log.e(LOGTAG, error);
+        if (mCameraRunning) {
+            error = "Camera already running, unable to open again";
+            Log.e(LOGTAG, error);
             throw new SampleApplicationException(
-                SampleApplicationException.CAMERA_INITIALIZATION_FAILURE, error);
+                    SampleApplicationException.CAMERA_INITIALIZATION_FAILURE, error);
         }
-        
+
         mCamera = camera;
-        if (!CameraDevice.getInstance().init(camera))
-        {
+        if (!CameraDevice.getInstance().init(camera)) {
             error = "Unable to open camera device: " + camera;
             Log.e(LOGTAG, error);
             throw new SampleApplicationException(
-                SampleApplicationException.CAMERA_INITIALIZATION_FAILURE, error);
+                    SampleApplicationException.CAMERA_INITIALIZATION_FAILURE, error);
         }
-               
+
         if (!CameraDevice.getInstance().selectVideoMode(
-            CameraDevice.MODE.MODE_DEFAULT))
-        {
+                CameraDevice.MODE.MODE_DEFAULT)) {
             error = "Unable to set video mode";
             Log.e(LOGTAG, error);
             throw new SampleApplicationException(
-                SampleApplicationException.CAMERA_INITIALIZATION_FAILURE, error);
+                    SampleApplicationException.CAMERA_INITIALIZATION_FAILURE, error);
         }
-        
+
         // Configure the rendering of the video background
         configureVideoBackground();
 
-        if (!CameraDevice.getInstance().start())
-        {
+        if (!CameraDevice.getInstance().start()) {
             error = "Unable to start camera device: " + camera;
             Log.e(LOGTAG, error);
             throw new SampleApplicationException(
-                SampleApplicationException.CAMERA_INITIALIZATION_FAILURE, error);
+                    SampleApplicationException.CAMERA_INITIALIZATION_FAILURE, error);
         }
-        
+
         setProjectionMatrix();
-        
+
         mSessionControl.doStartTrackers();
-        
+
         mCameraRunning = true;
-        
-        if(!CameraDevice.getInstance().setFocusMode(CameraDevice.FOCUS_MODE.FOCUS_MODE_CONTINUOUSAUTO))
-        {
-            if(!CameraDevice.getInstance().setFocusMode(CameraDevice.FOCUS_MODE.FOCUS_MODE_TRIGGERAUTO))
+
+        if (!CameraDevice.getInstance().setFocusMode(CameraDevice.FOCUS_MODE.FOCUS_MODE_CONTINUOUSAUTO)) {
+            if (!CameraDevice.getInstance().setFocusMode(CameraDevice.FOCUS_MODE.FOCUS_MODE_TRIGGERAUTO))
                 CameraDevice.getInstance().setFocusMode(CameraDevice.FOCUS_MODE.FOCUS_MODE_NORMAL);
         }
     }
-    
-    
+
+
     // Stops any ongoing initialization, stops Vuforia
-    public void stopAR() throws SampleApplicationException
-    {
+    public void stopAR() throws SampleApplicationException {
         // Cancel potentially running tasks
         if (mInitVuforiaTask != null
-            && mInitVuforiaTask.getStatus() != InitVuforiaTask.Status.FINISHED)
-        {
+                && mInitVuforiaTask.getStatus() != InitVuforiaTask.Status.FINISHED) {
             mInitVuforiaTask.cancel(true);
             mInitVuforiaTask = null;
         }
-        
+
         if (mLoadTrackerTask != null
-            && mLoadTrackerTask.getStatus() != LoadTrackerTask.Status.FINISHED)
-        {
+                && mLoadTrackerTask.getStatus() != LoadTrackerTask.Status.FINISHED) {
             mLoadTrackerTask.cancel(true);
             mLoadTrackerTask = null;
         }
-        
+
         mInitVuforiaTask = null;
         mLoadTrackerTask = null;
-        
+
         mStarted = false;
-        
+
         stopCamera();
-        
+
         // Ensure that all asynchronous operations to initialize Vuforia
         // and loading the tracker datasets do not overlap:
-        synchronized (mShutdownLock)
-        {
-            
+        synchronized (mShutdownLock) {
+
             boolean unloadTrackersResult;
             boolean deinitTrackersResult;
-            
+
             // Destroy the tracking data set:
             unloadTrackersResult = mSessionControl.doUnloadTrackersData();
-            
+
             // Deinitialize the trackers:
             deinitTrackersResult = mSessionControl.doDeinitTrackers();
-            
+
             // Deinitialize Vuforia SDK:
             Vuforia.deinit();
-            
+
             if (!unloadTrackersResult)
                 throw new SampleApplicationException(
-                    SampleApplicationException.UNLOADING_TRACKERS_FAILURE,
-                    "Failed to unload trackers\' data");
-            
+                        SampleApplicationException.UNLOADING_TRACKERS_FAILURE,
+                        "Failed to unload trackers\' data");
+
             if (!deinitTrackersResult)
                 throw new SampleApplicationException(
-                    SampleApplicationException.TRACKERS_DEINITIALIZATION_FAILURE,
-                    "Failed to deinitialize trackers");
-            
+                        SampleApplicationException.TRACKERS_DEINITIALIZATION_FAILURE,
+                        "Failed to deinitialize trackers");
+
         }
     }
-    
-    
+
+
     // Resumes Vuforia, restarts the trackers and the camera
-    public void resumeAR() throws SampleApplicationException
-    {
+    public void resumeAR() throws SampleApplicationException {
         // Vuforia-specific resume operation
         Vuforia.onResume();
-        
-        if (mStarted)
-        {
+
+        if (mStarted) {
             startAR(mCamera);
         }
     }
-    
-    
+
+
     // Pauses Vuforia and stops the camera
-    public void pauseAR() throws SampleApplicationException
-    {
-        if (mStarted)
-        {
+    public void pauseAR() throws SampleApplicationException {
+        if (mStarted) {
             stopCamera();
         }
-        
+
         Vuforia.onPause();
     }
-    
-    
+
+
     // Gets the projection matrix to be used for rendering
-    public Matrix44F getProjectionMatrix()
-    {
+    public Matrix44F getProjectionMatrix() {
         return mProjectionMatrix;
     }
- 
+
     // Gets the viewport to be used for rendering
-    public int[] getViewport()
-    {
+    public int[] getViewport() {
         return mViewport;
     }
-    
+
     // Callback called every cycle
     @Override
-    public void Vuforia_onUpdate(State s)
-    {
+    public void Vuforia_onUpdate(State s) {
         mSessionControl.onVuforiaUpdate(s);
     }
-    
-    
+
+
     // Manages the configuration changes
-    public void onConfigurationChanged()
-    {
+    public void onConfigurationChanged() {
         updateActivityOrientation();
-        
+
         storeScreenDimensions();
-        
-        if (isARRunning())
-        {
+
+        if (isARRunning()) {
             // configure video background
             configureVideoBackground();
-            
+
             // Update projection matrix:
             setProjectionMatrix();
         }
-        
+
     }
-    
-    
+
+
     // Methods to be called to handle lifecycle
-    public void onResume()
-    {
+    public void onResume() {
         Vuforia.onResume();
     }
-    
-    
-    public void onPause()
-    {
+
+
+    public void onPause() {
         Vuforia.onPause();
     }
-    
-    
-    public void onSurfaceChanged(int width, int height)
-    {
+
+
+    public void onSurfaceChanged(int width, int height) {
         Vuforia.onSurfaceChanged(width, height);
     }
-    
-    
-    public void onSurfaceCreated()
-    {
+
+
+    public void onSurfaceCreated() {
         Vuforia.onSurfaceCreated();
     }
 
     // Returns the error message for each error code
-    private String getInitializationErrorString(int code)
-    {
+    private String getInitializationErrorString(int code) {
         if (code == Vuforia.INIT_DEVICE_NOT_SUPPORTED)
             return mActivity.getString(R.string.INIT_ERROR_DEVICE_NOT_SUPPORTED);
         if (code == Vuforia.INIT_NO_CAMERA_ACCESS)
@@ -385,8 +353,7 @@ public class SampleApplicationSession implements UpdateCallbackInterface
             return mActivity.getString(R.string.INIT_LICENSE_ERROR_CANCELED_KEY);
         if (code == Vuforia.INIT_LICENSE_ERROR_PRODUCT_TYPE_MISMATCH)
             return mActivity.getString(R.string.INIT_LICENSE_ERROR_PRODUCT_TYPE_MISMATCH);
-        else
-        {
+        else {
             return mActivity.getString(R.string.INIT_LICENSE_ERROR_UNKNOWN_ERROR);
         }
     }
@@ -401,12 +368,10 @@ public class SampleApplicationSession implements UpdateCallbackInterface
     }
 
     // Stores the orientation depending on the current resources configuration
-    private void updateActivityOrientation()
-    {
+    private void updateActivityOrientation() {
         Configuration config = mActivity.getResources().getConfiguration();
 
-        switch (config.orientation)
-        {
+        switch (config.orientation) {
             case Configuration.ORIENTATION_PORTRAIT:
                 mIsPortrait = true;
                 break;
@@ -424,17 +389,14 @@ public class SampleApplicationSession implements UpdateCallbackInterface
 
     // Method for setting / updating the projection matrix for AR content
     // rendering
-    public void setProjectionMatrix()
-    {
+    public void setProjectionMatrix() {
         CameraCalibration camCal = CameraDevice.getInstance()
                 .getCameraCalibration();
         mProjectionMatrix = Tool.getProjectionGL(camCal, 10.0f, 5000.0f);
     }
 
-    public void stopCamera()
-    {
-        if (mCameraRunning)
-        {
+    public void stopCamera() {
+        if (mCameraRunning) {
             mSessionControl.doStopTrackers();
             CameraDevice.getInstance().stop();
             CameraDevice.getInstance().deinit();
@@ -443,8 +405,7 @@ public class SampleApplicationSession implements UpdateCallbackInterface
     }
 
     // Configures the video mode and sets offsets for the camera's image
-    private void configureVideoBackground()
-    {
+    private void configureVideoBackground() {
         CameraDevice cameraDevice = CameraDevice.getInstance();
         VideoMode vm = cameraDevice.getVideoMode(CameraDevice.MODE.MODE_DEFAULT);
 
@@ -494,23 +455,19 @@ public class SampleApplicationSession implements UpdateCallbackInterface
 
     // Returns true if Vuforia is initialized, the trackers started and the
     // tracker data loaded
-    private boolean isARRunning()
-    {
+    private boolean isARRunning() {
         return mStarted;
     }
 
     // An async task to initialize Vuforia asynchronously.
-    private class InitVuforiaTask extends AsyncTask<Void, Integer, Boolean>
-    {
+    private class InitVuforiaTask extends AsyncTask<Void, Integer, Boolean> {
         // Initialize with invalid value:
         private int mProgressValue = -1;
 
 
-        protected Boolean doInBackground(Void... params)
-        {
+        protected Boolean doInBackground(Void... params) {
             // Prevent the onDestroy() method to overlap with initialization:
-            synchronized (mShutdownLock)
-            {
+            synchronized (mShutdownLock) {
                 //Vuforia.setInitParameters(mActivity, mVuforiaFlags, "ADD KEY HERE");
                 Vuforia.setInitParameters(mActivity, mVuforiaFlags, mActivity.getString(R.string.vuforia_key));
 
@@ -541,8 +498,7 @@ public class SampleApplicationSession implements UpdateCallbackInterface
         }
 
 
-        protected void onProgressUpdate(Integer... values)
-        {
+        protected void onProgressUpdate(Integer... values) {
             // Do something with the progress value "values[0]", e.g. update
             // splash screen, progress bar, etc.
         }
@@ -554,8 +510,7 @@ public class SampleApplicationSession implements UpdateCallbackInterface
 
             SampleApplicationException vuforiaException = null;
 
-            if (result)
-            {
+            if (result) {
                 Log.d(LOGTAG, "InitVuforiaTask.onPostExecute: Vuforia "
                         + "initialization successful");
 
@@ -604,8 +559,7 @@ public class SampleApplicationSession implements UpdateCallbackInterface
     }
 
     // An async task to load the tracker data asynchronously.
-    private class LoadTrackerTask extends AsyncTask<Void, Integer, Boolean>
-    {
+    private class LoadTrackerTask extends AsyncTask<Void, Integer, Boolean> {
         protected Boolean doInBackground(Void... params) {
             // Prevent the onDestroy() method to overlap:
             synchronized (mShutdownLock) {
@@ -647,5 +601,5 @@ public class SampleApplicationSession implements UpdateCallbackInterface
             mSessionControl.onInitARDone(vuforiaException);
         }
     }
-    
+
 }

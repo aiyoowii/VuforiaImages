@@ -22,47 +22,43 @@ import android.widget.RelativeLayout;
 import com.vuforia.cegrano.RenderImage.R;
 
 
-public class ActivitySplashScreen extends Activity
-{
-    
+public class ActivitySplashScreen extends Activity {
+
     private static long SPLASH_MILLIS = 450;
-    
-    
+
+
     @Override
-    public void onCreate(Bundle savedInstanceState)
-    {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
+
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-            WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
         LayoutInflater inflater = LayoutInflater.from(this);
         RelativeLayout layout = (RelativeLayout) inflater.inflate(
-            R.layout.splash_screen, null, false);
-        
+                R.layout.splash_screen, null, false);
+
         addContentView(layout, new LayoutParams(LayoutParams.MATCH_PARENT,
-            LayoutParams.MATCH_PARENT));
-        
+                LayoutParams.MATCH_PARENT));
+
         final Handler handler = new Handler();
-        handler.postDelayed(new Runnable()
-        {
-            
+        handler.postDelayed(new Runnable() {
+
             @Override
-            public void run()
-            {
-                
+            public void run() {
+
                 Intent intent = new Intent(ActivitySplashScreen.this,
-                    AboutScreen.class);
+                        AboutScreen.class);
                 intent.putExtra("ACTIVITY_TO_LAUNCH",
-                    "app.VideoPlayback.ImagePlayback");
+                        "app.VideoPlayback.ImagePlayback");
                 intent.putExtra("ABOUT_TEXT_TITLE", "Image Playback");
                 intent.putExtra("ABOUT_TEXT", "VideoPlayback/VP_about.html");
                 startActivity(intent);
-                
+
             }
-            
+
         }, SPLASH_MILLIS);
     }
-    
+
 }

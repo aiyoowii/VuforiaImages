@@ -45,8 +45,7 @@ import javax.microedition.khronos.opengles.GL10;
 
 
 // The renderer class for the ImagePlayback sample.
-public class ImagePlaybackRenderer implements GLSurfaceView.Renderer
-{
+public class ImagePlaybackRenderer implements GLSurfaceView.Renderer {
     private static final String LOGTAG = "ImagePlaybackRenderer";
     static int NUM_QUAD_VERTEX = 4;
     static int NUM_QUAD_INDEX = 6;
@@ -88,13 +87,13 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer
     private int keyframeTexSampler2DHandle = 0;
     // We cannot use the default texture coordinates of the quad since these
     // will change depending on the video itself
-    private float videoQuadTextureCoords[] = { 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
-            1.0f, 0.0f, 1.0f, };
+    private float videoQuadTextureCoords[] = {0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+            1.0f, 0.0f, 1.0f,};
     // This variable will hold the transformed coordinates (changes every frame)
-    private float videoQuadTextureCoordsTransformedStones[] = { 0.0f, 0.0f,
-            1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, };
-    private float videoQuadTextureCoordsTransformedChips[] = { 0.0f, 0.0f,
-            1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, };
+    private float videoQuadTextureCoordsTransformedStones[] = {0.0f, 0.0f,
+            1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f,};
+    private float videoQuadTextureCoordsTransformedChips[] = {0.0f, 0.0f,
+            1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f,};
     private float[][] mTexCoordTransformationMatrix = null;
     private VideoPlayerHelper mVideoPlayerHelper[] = null;
     private String mMovieName[] = null;
@@ -108,8 +107,7 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer
 
 
     public ImagePlaybackRenderer(ImagePlayback activity,
-                                 SampleApplicationSession session)
-    {
+                                 SampleApplicationSession session) {
 
         mActivity = activity;
         vuforiaAppSession = session;
@@ -125,8 +123,7 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer
         mTexCoordTransformationMatrix = new float[ImagePlayback.NUM_TARGETS][16];
 
         // Initialize the arrays to default values
-        for (int i = 0; i < ImagePlayback.NUM_TARGETS; i++)
-        {
+        for (int i = 0; i < ImagePlayback.NUM_TARGETS; i++) {
             mVideoPlayerHelper[i] = null;
             mMovieName[i] = "";
             mCanRequestType[i] = MEDIA_TYPE.ON_TEXTURE_FULLSCREEN;
@@ -146,15 +143,13 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer
 
     // Store the Player Helper object passed from the main activity
     public void setVideoPlayerHelper(int target,
-        VideoPlayerHelper newVideoPlayerHelper)
-    {
+                                     VideoPlayerHelper newVideoPlayerHelper) {
         mVideoPlayerHelper[target] = newVideoPlayerHelper;
     }
 
 
     public void requestLoad(int target, String movieName, int seekPosition,
-        boolean playImmediately)
-    {
+                            boolean playImmediately) {
         mMovieName[target] = movieName;
         mSeekPosition[target] = seekPosition;
         mShouldPlayImmediately[target] = playImmediately;
@@ -163,8 +158,7 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer
 
 
     // Called when the surface is created or recreated.
-    public void onSurfaceCreated(GL10 gl, EGLConfig config)
-    {
+    public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         // Call function to initialize rendering:
         // The video texture is also created on this step
         initRendering();
@@ -173,11 +167,9 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer
         // or after OpenGL ES context was lost (e.g. after onPause/onResume):
         Vuforia.onSurfaceCreated();
 
-        for (int i = 0; i < ImagePlayback.NUM_TARGETS; i++)
-        {
+        for (int i = 0; i < ImagePlayback.NUM_TARGETS; i++) {
 
-            if (mVideoPlayerHelper[i] != null)
-            {
+            if (mVideoPlayerHelper[i] != null) {
                 // The VideoPlayerHelper needs to setup a surface texture given
                 // the texture id
                 // Here we inform the video player that we would like to play
@@ -189,18 +181,17 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer
                 // isPlayableOnTexture() whether
                 // this can be played embedded in the AR scene
                 if (!mVideoPlayerHelper[i]
-                    .setupSurfaceTexture(imagePlaybackTextureID[i]))
+                        .setupSurfaceTexture(imagePlaybackTextureID[i]))
                     mCanRequestType[i] = MEDIA_TYPE.FULLSCREEN;
                 else
                     mCanRequestType[i] = MEDIA_TYPE.ON_TEXTURE_FULLSCREEN;
 
                 // And now check if a load has been requested with the
                 // parameters passed from the main activity
-                if (mLoadRequested[i])
-                {
+                if (mLoadRequested[i]) {
                     mVideoPlayerHelper[i].load(mMovieName[i],
-                        mCanRequestType[i], mShouldPlayImmediately[i],
-                        mSeekPosition[i]);
+                            mCanRequestType[i], mShouldPlayImmediately[i],
+                            mSeekPosition[i]);
                     mLoadRequested[i] = false;
                 }
             }
@@ -209,8 +200,7 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer
 
 
     // Called when the surface changed size.
-    public void onSurfaceChanged(GL10 gl, int width, int height)
-    {
+    public void onSurfaceChanged(GL10 gl, int width, int height) {
         // Call Vuforia function to handle render surface size changes:
         Vuforia.onSurfaceChanged(width, height);
 
@@ -219,12 +209,10 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer
         // reloaded
         // See:
         // http://developer.android.com/reference/android/media/MediaPlayer.html#release()
-        for (int i = 0; i < ImagePlayback.NUM_TARGETS; i++)
-        {
-            if (mLoadRequested[i] && mVideoPlayerHelper[i] != null)
-            {
+        for (int i = 0; i < ImagePlayback.NUM_TARGETS; i++) {
+            if (mLoadRequested[i] && mVideoPlayerHelper[i] != null) {
                 mVideoPlayerHelper[i].load(mMovieName[i], mCanRequestType[i],
-                    mShouldPlayImmediately[i], mSeekPosition[i]);
+                        mShouldPlayImmediately[i], mSeekPosition[i]);
                 mLoadRequested[i] = false;
             }
         }
@@ -232,23 +220,18 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer
 
 
     // Called to draw the current frame.
-    public void onDrawFrame(GL10 gl)
-    {
+    public void onDrawFrame(GL10 gl) {
         if (!mIsActive)
             return;
 
-        for (int i = 0; i < ImagePlayback.NUM_TARGETS; i++)
-        {
-            if (mVideoPlayerHelper[i] != null)
-            {
-                if (mVideoPlayerHelper[i].isPlayableOnTexture())
-                {
+        for (int i = 0; i < ImagePlayback.NUM_TARGETS; i++) {
+            if (mVideoPlayerHelper[i] != null) {
+                if (mVideoPlayerHelper[i].isPlayableOnTexture()) {
                     // First we need to update the video data. This is a built
                     // in Android call
                     // Here, the decoded data is uploaded to the OES texture
                     // We only need to do this if the movie is playing
-                    if (mVideoPlayerHelper[i].getStatus() == MEDIA_STATE.PLAYING)
-                    {
+                    if (mVideoPlayerHelper[i].getStatus() == MEDIA_STATE.PLAYING) {
                         mVideoPlayerHelper[i].updateVideoData();
                     }
 
@@ -257,11 +240,11 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer
                     // transforming the texture coordinates needs to happen
                     // every frame.
                     mVideoPlayerHelper[i]
-                        .getSurfaceTextureTransformMatrix(mTexCoordTransformationMatrix[i]);
+                            .getSurfaceTextureTransformMatrix(mTexCoordTransformationMatrix[i]);
                     setVideoDimensions(i,
-                        mVideoPlayerHelper[i].getVideoWidth(),
-                        mVideoPlayerHelper[i].getVideoHeight(),
-                        mTexCoordTransformationMatrix[i]);
+                            mVideoPlayerHelper[i].getVideoWidth(),
+                            mVideoPlayerHelper[i].getVideoHeight(),
+                            mTexCoordTransformationMatrix[i]);
                 }
 
                 setStatus(i, mVideoPlayerHelper[i].getStatus().getNumericType());
@@ -271,25 +254,20 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer
         // Call our function to render content
         renderFrame();
 
-        for (int i = 0; i < ImagePlayback.NUM_TARGETS; i++)
-        {
+        for (int i = 0; i < ImagePlayback.NUM_TARGETS; i++) {
             // Ask whether the target is currently being tracked and if so react
             // to it
-            if (isTracking(i))
-            {
+            if (isTracking(i)) {
                 // If it is tracking reset the timestamp for lost tracking
                 mLostTrackingSince[i] = -1;
-            } else
-            {
+            } else {
                 // If it isn't tracking
                 // check whether it just lost it or if it's been a while
                 if (mLostTrackingSince[i] < 0)
                     mLostTrackingSince[i] = SystemClock.uptimeMillis();
-                else
-                {
+                else {
                     // If it's been more than 2 seconds then pause the player
-                    if ((SystemClock.uptimeMillis() - mLostTrackingSince[i]) > 2000)
-                    {
+                    if ((SystemClock.uptimeMillis() - mLostTrackingSince[i]) > 2000) {
                         if (mVideoPlayerHelper[i] != null)
                             mVideoPlayerHelper[i].pause();
                     }
@@ -313,32 +291,30 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer
 
 
     @SuppressLint("InlinedApi")
-    void initRendering()
-    {
+    void initRendering() {
         Log.d(LOGTAG, "ImagePlayback ImagePlaybackRenderer initRendering");
 
         // Define clear color
         GLES20.glClearColor(0.0f, 0.0f, 0.0f, Vuforia.requiresAlpha() ? 0.0f
-            : 1.0f);
+                : 1.0f);
 
         // Now generate the OpenGL texture objects and add settings
-        for (Texture t : mTextures)
-        {
+        for (Texture t : mTextures) {
             // Here we create the textures for the keyframe
             // and for all the icons
             GLES20.glGenTextures(1, t.mTextureID, 0);
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, t.mTextureID[0]);
             GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D,
-                GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+                    GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
             GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D,
-                GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+                    GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
             GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D,
-                GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
+                    GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
             GLES20.glTexParameterf(GLES20.GL_TEXTURE_2D,
-                GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+                    GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
             GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA,
-                t.mWidth, t.mHeight, 0, GLES20.GL_RGBA,
-                GLES20.GL_UNSIGNED_BYTE, t.mData);
+                    t.mWidth, t.mHeight, 0, GLES20.GL_RGBA,
+                    GLES20.GL_UNSIGNED_BYTE, t.mData);
         }
 
         // Now we create the texture for the video data from the movie
@@ -346,15 +322,14 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer
         // Notice that the textures are not typical GL_TEXTURE_2D textures
         // but instead are GL_TEXTURE_EXTERNAL_OES extension textures
         // This is required by the Android SurfaceTexture
-        for (int i = 0; i < ImagePlayback.NUM_TARGETS; i++)
-        {
+        for (int i = 0; i < ImagePlayback.NUM_TARGETS; i++) {
             GLES20.glGenTextures(1, imagePlaybackTextureID, i);
             GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
-                imagePlaybackTextureID[i]);
+                    imagePlaybackTextureID[i]);
             GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
-                GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+                    GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
             GLES20.glTexParameterf(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
-                GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+                    GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
             GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0);
         }
 
@@ -362,38 +337,38 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer
         // movie
         // (it is aware of the GL_TEXTURE_EXTERNAL_OES extension)
         imagePlaybackShaderID = SampleUtils.createProgramFromShaderSrc(
-            VideoPlaybackShaders.VIDEO_PLAYBACK_VERTEX_SHADER,
-            VideoPlaybackShaders.VIDEO_PLAYBACK_FRAGMENT_SHADER);
+                VideoPlaybackShaders.VIDEO_PLAYBACK_VERTEX_SHADER,
+                VideoPlaybackShaders.VIDEO_PLAYBACK_FRAGMENT_SHADER);
         imagePlaybackVertexHandle = GLES20.glGetAttribLocation(
-            imagePlaybackShaderID, "vertexPosition");
+                imagePlaybackShaderID, "vertexPosition");
         imagePlaybackNormalHandle = GLES20.glGetAttribLocation(
-            imagePlaybackShaderID, "vertexNormal");
+                imagePlaybackShaderID, "vertexNormal");
         imagePlaybackTexCoordHandle = GLES20.glGetAttribLocation(
-            imagePlaybackShaderID, "vertexTexCoord");
+                imagePlaybackShaderID, "vertexTexCoord");
         imagePlaybackMVPMatrixHandle = GLES20.glGetUniformLocation(
-            imagePlaybackShaderID, "modelViewProjectionMatrix");
+                imagePlaybackShaderID, "modelViewProjectionMatrix");
         imagePlaybackTexSamplerOESHandle = GLES20.glGetUniformLocation(
-            imagePlaybackShaderID, "texSamplerOES");
+                imagePlaybackShaderID, "texSamplerOES");
 
         // This is a simpler shader with regular 2D textures
         keyframeShaderID = SampleUtils.createProgramFromShaderSrc(
-            KeyFrameShaders.KEY_FRAME_VERTEX_SHADER,
-            KeyFrameShaders.KEY_FRAME_FRAGMENT_SHADER);
+                KeyFrameShaders.KEY_FRAME_VERTEX_SHADER,
+                KeyFrameShaders.KEY_FRAME_FRAGMENT_SHADER);
         keyframeVertexHandle = GLES20.glGetAttribLocation(keyframeShaderID,
-            "vertexPosition");
+                "vertexPosition");
         keyframeNormalHandle = GLES20.glGetAttribLocation(keyframeShaderID,
-            "vertexNormal");
+                "vertexNormal");
         keyframeTexCoordHandle = GLES20.glGetAttribLocation(keyframeShaderID,
-            "vertexTexCoord");
+                "vertexTexCoord");
         keyframeMVPMatrixHandle = GLES20.glGetUniformLocation(keyframeShaderID,
-            "modelViewProjectionMatrix");
+                "modelViewProjectionMatrix");
         keyframeTexSampler2DHandle = GLES20.glGetUniformLocation(
-            keyframeShaderID, "texSampler2D");
+                keyframeShaderID, "texSampler2D");
 
         keyframeQuadAspectRatio[ImagePlayback.STONES] = (float) mTextures
-            .get(0).mHeight / (float) mTextures.get(0).mWidth;
+                .get(0).mHeight / (float) mTextures.get(0).mWidth;
         keyframeQuadAspectRatio[ImagePlayback.CHIPS] = (float) mTextures.get(1).mHeight
-            / (float) mTextures.get(1).mWidth;
+                / (float) mTextures.get(1).mWidth;
 
         quadVertices = fillBuffer(quadVerticesArray);
         quadTexCoords = fillBuffer(quadTexCoordsArray);
@@ -403,14 +378,13 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer
     }
 
 
-    private Buffer fillBuffer(double[] array)
-    {
+    private Buffer fillBuffer(double[] array) {
         // Convert to floats because OpenGL doesnt work on doubles, and manually
         // casting each input value would take too much time.
         ByteBuffer bb = ByteBuffer.allocateDirect(4 * array.length); // each
-                                                                     // float
-                                                                     // takes 4
-                                                                     // bytes
+        // float
+        // takes 4
+        // bytes
         bb.order(ByteOrder.LITTLE_ENDIAN);
         for (double d : array)
             bb.putFloat((float) d);
@@ -421,12 +395,11 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer
     }
 
 
-    private Buffer fillBuffer(short[] array)
-    {
+    private Buffer fillBuffer(short[] array) {
         ByteBuffer bb = ByteBuffer.allocateDirect(2 * array.length); // each
-                                                                     // short
-                                                                     // takes 2
-                                                                     // bytes
+        // short
+        // takes 2
+        // bytes
         bb.order(ByteOrder.LITTLE_ENDIAN);
         for (short s : array)
             bb.putShort(s);
@@ -437,14 +410,13 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer
     }
 
 
-    private Buffer fillBuffer(float[] array)
-    {
+    private Buffer fillBuffer(float[] array) {
         // Convert to floats because OpenGL doesnt work on doubles, and manually
         // casting each input value would take too much time.
         ByteBuffer bb = ByteBuffer.allocateDirect(4 * array.length); // each
-                                                                     // float
-                                                                     // takes 4
-                                                                     // bytes
+        // float
+        // takes 4
+        // bytes
         bb.order(ByteOrder.LITTLE_ENDIAN);
         for (float d : array)
             bb.putFloat(d);
@@ -456,8 +428,7 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer
 
 
     @SuppressLint("InlinedApi")
-    void renderFrame()
-    {
+    void renderFrame() {
         // Clear color and depth buffer
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 
@@ -487,21 +458,19 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer
         else
             GLES20.glFrontFace(GLES20.GL_CCW); // Back camera
 
-        float temp[] = { 0.0f, 0.0f, 0.0f };
-        for (int i = 0; i < ImagePlayback.NUM_TARGETS; i++)
-        {
+        float temp[] = {0.0f, 0.0f, 0.0f};
+        for (int i = 0; i < ImagePlayback.NUM_TARGETS; i++) {
             isTracking[i] = false;
             targetPositiveDimensions[i].setData(temp);
         }
 
         // Did we find any trackables this frame?
-        for (int tIdx = 0; tIdx < state.getNumTrackableResults(); tIdx++)
-        {
+        for (int tIdx = 0; tIdx < state.getNumTrackableResults(); tIdx++) {
             // Get the trackable:
             TrackableResult trackableResult = state.getTrackableResult(tIdx);
 
             ImageTarget imageTarget = (ImageTarget) trackableResult
-                .getTrackable();
+                    .getTrackable();
 
             int currentTarget;
 
@@ -514,7 +483,7 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer
             currentTarget = 0;
 
             modelViewMatrix[currentTarget] = Tool
-                .convertPose2GLMatrix(trackableResult.getPose());
+                    .convertPose2GLMatrix(trackableResult.getPose());
 
             isTracking[currentTarget] = true;
 
@@ -529,10 +498,9 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer
             // If the movie is ready to start playing or it has reached the end
             // of playback we render the keyframe
             if ((currentStatus[currentTarget] == MEDIA_STATE.READY)
-                || (currentStatus[currentTarget] == MEDIA_STATE.REACHED_END)
-                || (currentStatus[currentTarget] == MEDIA_STATE.NOT_READY)
-                || (currentStatus[currentTarget] == MEDIA_STATE.ERROR))
-            {
+                    || (currentStatus[currentTarget] == MEDIA_STATE.REACHED_END)
+                    || (currentStatus[currentTarget] == MEDIA_STATE.NOT_READY)
+                    || (currentStatus[currentTarget] == MEDIA_STATE.ERROR)) {
                 render(trackableResult, currentTarget, 0, "abc");
                 render(trackableResult, currentTarget, 1, "dance");
                 render(trackableResult, currentTarget, 2, "penquanrenwu");
@@ -544,20 +512,20 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer
             // the actual contents
             {
                 float[] modelViewMatrixVideo = Tool.convertPose2GLMatrix(
-                    trackableResult.getPose()).getData();
+                        trackableResult.getPose()).getData();
                 float[] modelViewProjectionVideo = new float[16];
                 // Matrix.translateM(modelViewMatrixVideo, 0, 0.0f, 0.0f,
                 // targetPositiveDimensions[currentTarget].getData()[0]);
 
                 // Here we use the aspect ratio of the video frame
                 Matrix.scaleM(modelViewMatrixVideo, 0,
-                    targetPositiveDimensions[currentTarget].getData()[0],
-                    targetPositiveDimensions[currentTarget].getData()[0]
-                        * videoQuadAspectRatio[currentTarget],
-                    targetPositiveDimensions[currentTarget].getData()[0]);
+                        targetPositiveDimensions[currentTarget].getData()[0],
+                        targetPositiveDimensions[currentTarget].getData()[0]
+                                * videoQuadAspectRatio[currentTarget],
+                        targetPositiveDimensions[currentTarget].getData()[0]);
                 Matrix.multiplyMM(modelViewProjectionVideo, 0,
-                    vuforiaAppSession.getProjectionMatrix().getData(), 0,
-                    modelViewMatrixVideo, 0);
+                        vuforiaAppSession.getProjectionMatrix().getData(), 0,
+                        modelViewMatrixVideo, 0);
 
                 //Enable blending
                 GLES20.glEnable(GLES20.GL_BLEND);
@@ -567,18 +535,18 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer
 
                 // Prepare for rendering the keyframe
                 GLES20.glVertexAttribPointer(imagePlaybackVertexHandle, 3,
-                    GLES20.GL_FLOAT, false, 0, quadVertices);
+                        GLES20.GL_FLOAT, false, 0, quadVertices);
                 GLES20.glVertexAttribPointer(imagePlaybackNormalHandle, 3,
-                    GLES20.GL_FLOAT, false, 0, quadNormals);
+                        GLES20.GL_FLOAT, false, 0, quadNormals);
 
                 if (imageTarget.getName().compareTo("stones") == 0)
                     GLES20.glVertexAttribPointer(imagePlaybackTexCoordHandle,
-                        2, GLES20.GL_FLOAT, false, 0,
-                        fillBuffer(videoQuadTextureCoordsTransformedStones));
+                            2, GLES20.GL_FLOAT, false, 0,
+                            fillBuffer(videoQuadTextureCoordsTransformedStones));
                 else
                     GLES20.glVertexAttribPointer(imagePlaybackTexCoordHandle,
-                        2, GLES20.GL_FLOAT, false, 0,
-                        fillBuffer(videoQuadTextureCoordsTransformedChips));
+                            2, GLES20.GL_FLOAT, false, 0,
+                            fillBuffer(videoQuadTextureCoordsTransformedChips));
 
                 GLES20.glEnableVertexAttribArray(imagePlaybackVertexHandle);
                 GLES20.glEnableVertexAttribArray(imagePlaybackNormalHandle);
@@ -590,14 +558,14 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer
                 // Notice here that the texture that we are binding is not the
                 // typical GL_TEXTURE_2D but instead the GL_TEXTURE_EXTERNAL_OES
                 GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES,
-                    imagePlaybackTextureID[currentTarget]);
+                        imagePlaybackTextureID[currentTarget]);
                 GLES20.glUniformMatrix4fv(imagePlaybackMVPMatrixHandle, 1,
-                    false, modelViewProjectionVideo, 0);
+                        false, modelViewProjectionVideo, 0);
                 GLES20.glUniform1i(imagePlaybackTexSamplerOESHandle, 0);
 
                 // Render
                 GLES20.glDrawElements(GLES20.GL_TRIANGLES, NUM_QUAD_INDEX,
-                    GLES20.GL_UNSIGNED_SHORT, quadIndices);
+                        GLES20.GL_UNSIGNED_SHORT, quadIndices);
 
                 GLES20.glDisableVertexAttribArray(imagePlaybackVertexHandle);
                 GLES20.glDisableVertexAttribArray(imagePlaybackNormalHandle);
@@ -687,8 +655,7 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer
         GLES20.glDisable(GLES20.GL_BLEND);
     }
 
-    boolean isTapOnScreenInsideTarget(int target, float x, float y)
-    {
+    boolean isTapOnScreenInsideTarget(int target, float x, float y) {
         // Here we calculate that the touch event is inside the target
         Vec3F intersection;
         // Vec3F lineStart = new Vec3F();
@@ -697,19 +664,19 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer
         DisplayMetrics metrics = new DisplayMetrics();
         mActivity.getWindowManager().getDefaultDisplay().getMetrics(metrics);
         intersection = SampleMath.getPointToPlaneIntersection(SampleMath
-            .Matrix44FInverse(vuforiaAppSession.getProjectionMatrix()),
-            modelViewMatrix[target], metrics.widthPixels, metrics.heightPixels,
-            new Vec2F(x, y), new Vec3F(0, 0, 0), new Vec3F(0, 0, 1));
+                        .Matrix44FInverse(vuforiaAppSession.getProjectionMatrix()),
+                modelViewMatrix[target], metrics.widthPixels, metrics.heightPixels,
+                new Vec2F(x, y), new Vec3F(0, 0, 0), new Vec3F(0, 0, 1));
 
         // The target returns as pose the center of the trackable. The following
         // if-statement simply checks that the tap is within this range
         if ((intersection.getData()[0] >= -(targetPositiveDimensions[target]
-            .getData()[0]))
-            && (intersection.getData()[0] <= (targetPositiveDimensions[target]
                 .getData()[0]))
-            && (intersection.getData()[1] >= -(targetPositiveDimensions[target]
+                && (intersection.getData()[0] <= (targetPositiveDimensions[target]
+                .getData()[0]))
+                && (intersection.getData()[1] >= -(targetPositiveDimensions[target]
                 .getData()[1]))
-            && (intersection.getData()[1] <= (targetPositiveDimensions[target]
+                && (intersection.getData()[1] <= (targetPositiveDimensions[target]
                 .getData()[1])))
             return true;
         else
@@ -718,8 +685,7 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer
 
 
     void setVideoDimensions(int target, float videoWidth, float videoHeight,
-        float[] textureCoordMatrix)
-    {
+                            float[] textureCoordMatrix) {
         // The quad originaly comes as a perfect square, however, the video
         // often has a different aspect ration such as 4:3 or 16:9,
         // To mitigate this we have two options:
@@ -733,56 +699,54 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer
         float mtx[] = textureCoordMatrix;
         float tempUVMultRes[] = new float[2];
 
-        if (target == ImagePlayback.STONES)
-        {
+        if (target == ImagePlayback.STONES) {
             tempUVMultRes = uvMultMat4f(
-                videoQuadTextureCoordsTransformedStones[0],
-                videoQuadTextureCoordsTransformedStones[1],
-                videoQuadTextureCoords[0], videoQuadTextureCoords[1], mtx);
+                    videoQuadTextureCoordsTransformedStones[0],
+                    videoQuadTextureCoordsTransformedStones[1],
+                    videoQuadTextureCoords[0], videoQuadTextureCoords[1], mtx);
             videoQuadTextureCoordsTransformedStones[0] = tempUVMultRes[0];
             videoQuadTextureCoordsTransformedStones[1] = tempUVMultRes[1];
             tempUVMultRes = uvMultMat4f(
-                videoQuadTextureCoordsTransformedStones[2],
-                videoQuadTextureCoordsTransformedStones[3],
-                videoQuadTextureCoords[2], videoQuadTextureCoords[3], mtx);
+                    videoQuadTextureCoordsTransformedStones[2],
+                    videoQuadTextureCoordsTransformedStones[3],
+                    videoQuadTextureCoords[2], videoQuadTextureCoords[3], mtx);
             videoQuadTextureCoordsTransformedStones[2] = tempUVMultRes[0];
             videoQuadTextureCoordsTransformedStones[3] = tempUVMultRes[1];
             tempUVMultRes = uvMultMat4f(
-                videoQuadTextureCoordsTransformedStones[4],
-                videoQuadTextureCoordsTransformedStones[5],
-                videoQuadTextureCoords[4], videoQuadTextureCoords[5], mtx);
+                    videoQuadTextureCoordsTransformedStones[4],
+                    videoQuadTextureCoordsTransformedStones[5],
+                    videoQuadTextureCoords[4], videoQuadTextureCoords[5], mtx);
             videoQuadTextureCoordsTransformedStones[4] = tempUVMultRes[0];
             videoQuadTextureCoordsTransformedStones[5] = tempUVMultRes[1];
             tempUVMultRes = uvMultMat4f(
-                videoQuadTextureCoordsTransformedStones[6],
-                videoQuadTextureCoordsTransformedStones[7],
-                videoQuadTextureCoords[6], videoQuadTextureCoords[7], mtx);
+                    videoQuadTextureCoordsTransformedStones[6],
+                    videoQuadTextureCoordsTransformedStones[7],
+                    videoQuadTextureCoords[6], videoQuadTextureCoords[7], mtx);
             videoQuadTextureCoordsTransformedStones[6] = tempUVMultRes[0];
             videoQuadTextureCoordsTransformedStones[7] = tempUVMultRes[1];
-        } else if (target == ImagePlayback.CHIPS)
-        {
+        } else if (target == ImagePlayback.CHIPS) {
             tempUVMultRes = uvMultMat4f(
-                videoQuadTextureCoordsTransformedChips[0],
-                videoQuadTextureCoordsTransformedChips[1],
-                videoQuadTextureCoords[0], videoQuadTextureCoords[1], mtx);
+                    videoQuadTextureCoordsTransformedChips[0],
+                    videoQuadTextureCoordsTransformedChips[1],
+                    videoQuadTextureCoords[0], videoQuadTextureCoords[1], mtx);
             videoQuadTextureCoordsTransformedChips[0] = tempUVMultRes[0];
             videoQuadTextureCoordsTransformedChips[1] = tempUVMultRes[1];
             tempUVMultRes = uvMultMat4f(
-                videoQuadTextureCoordsTransformedChips[2],
-                videoQuadTextureCoordsTransformedChips[3],
-                videoQuadTextureCoords[2], videoQuadTextureCoords[3], mtx);
+                    videoQuadTextureCoordsTransformedChips[2],
+                    videoQuadTextureCoordsTransformedChips[3],
+                    videoQuadTextureCoords[2], videoQuadTextureCoords[3], mtx);
             videoQuadTextureCoordsTransformedChips[2] = tempUVMultRes[0];
             videoQuadTextureCoordsTransformedChips[3] = tempUVMultRes[1];
             tempUVMultRes = uvMultMat4f(
-                videoQuadTextureCoordsTransformedChips[4],
-                videoQuadTextureCoordsTransformedChips[5],
-                videoQuadTextureCoords[4], videoQuadTextureCoords[5], mtx);
+                    videoQuadTextureCoordsTransformedChips[4],
+                    videoQuadTextureCoordsTransformedChips[5],
+                    videoQuadTextureCoords[4], videoQuadTextureCoords[5], mtx);
             videoQuadTextureCoordsTransformedChips[4] = tempUVMultRes[0];
             videoQuadTextureCoordsTransformedChips[5] = tempUVMultRes[1];
             tempUVMultRes = uvMultMat4f(
-                videoQuadTextureCoordsTransformedChips[6],
-                videoQuadTextureCoordsTransformedChips[7],
-                videoQuadTextureCoords[6], videoQuadTextureCoords[7], mtx);
+                    videoQuadTextureCoordsTransformedChips[6],
+                    videoQuadTextureCoordsTransformedChips[7],
+                    videoQuadTextureCoords[6], videoQuadTextureCoords[7], mtx);
             videoQuadTextureCoordsTransformedChips[6] = tempUVMultRes[0];
             videoQuadTextureCoordsTransformedChips[7] = tempUVMultRes[1];
         }
@@ -793,12 +757,11 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer
 
     // Multiply the UV coordinates by the given transformation matrix
     float[] uvMultMat4f(float transformedU, float transformedV, float u,
-        float v, float[] pMat)
-    {
-        float x = pMat[0] * u + pMat[4] * v /* + pMat[ 8]*0.f */+ pMat[12]
-            * 1.f;
-        float y = pMat[1] * u + pMat[5] * v /* + pMat[ 9]*0.f */+ pMat[13]
-            * 1.f;
+                        float v, float[] pMat) {
+        float x = pMat[0] * u + pMat[4] * v /* + pMat[ 8]*0.f */ + pMat[12]
+                * 1.f;
+        float y = pMat[1] * u + pMat[5] * v /* + pMat[ 9]*0.f */ + pMat[13]
+                * 1.f;
         // float z = pMat[2]*u + pMat[6]*v + pMat[10]*0.f + pMat[14]*1.f; // We
         // dont need z and w so we comment them out
         // float w = pMat[3]*u + pMat[7]*v + pMat[11]*0.f + pMat[15]*1.f;
@@ -812,11 +775,9 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer
     }
 
 
-    void setStatus(int target, int value)
-    {
+    void setStatus(int target, int value) {
         // Transform the value passed from java to our own values
-        switch (value)
-        {
+        switch (value) {
             case 0:
                 currentStatus[target] = MEDIA_STATE.REACHED_END;
                 break;
@@ -843,17 +804,15 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer
                 break;
         }
     }
-    
-    
-    boolean isTracking(int target)
-    {
+
+
+    boolean isTracking(int target) {
         return isTracking[target];
     }
-    
-    
-    public void setTextures(Vector<Texture> textures)
-    {
+
+
+    public void setTextures(Vector<Texture> textures) {
         mTextures = textures;
     }
-    
+
 }
