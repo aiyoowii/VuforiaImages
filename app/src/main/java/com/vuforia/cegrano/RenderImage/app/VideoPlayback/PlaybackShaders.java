@@ -9,7 +9,7 @@ countries.
 
 package com.vuforia.cegrano.RenderImage.app.VideoPlayback;
 
-public class VideoPlaybackShaders {
+public class PlaybackShaders {
 
     public static final String VIDEO_PLAYBACK_VERTEX_SHADER = " \n"
             + "attribute vec4 vertexPosition; \n"

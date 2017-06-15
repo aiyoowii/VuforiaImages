@@ -336,8 +336,8 @@ public class VideoPlaybackRenderer implements GLSurfaceView.Renderer {
         // movie
         // (it is aware of the GL_TEXTURE_EXTERNAL_OES extension)
         videoPlaybackShaderID = SampleUtils.createProgramFromShaderSrc(
-                VideoPlaybackShaders.VIDEO_PLAYBACK_VERTEX_SHADER,
-                VideoPlaybackShaders.VIDEO_PLAYBACK_FRAGMENT_SHADER);
+                PlaybackShaders.VIDEO_PLAYBACK_VERTEX_SHADER,
+                PlaybackShaders.VIDEO_PLAYBACK_FRAGMENT_SHADER);
         videoPlaybackVertexHandle = GLES20.glGetAttribLocation(
                 videoPlaybackShaderID, "vertexPosition");
         videoPlaybackNormalHandle = GLES20.glGetAttribLocation(

@@ -13,11 +13,9 @@ package com.vuforia.cegrano.RenderImage.app.VideoPlayback;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.Color;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -38,7 +36,6 @@ import com.vuforia.Tracker;
 import com.vuforia.TrackerManager;
 import com.vuforia.Vuforia;
 import com.vuforia.cegrano.RenderImage.R;
-import com.vuforia.cegrano.RenderImage.app.VideoPlayback.VideoPlayerHelper.MEDIA_STATE;
 import com.vuforia.cegrano.RenderImage.ui.SampleAppMenu.SampleAppMenu;
 import com.vuforia.cegrano.RenderImage.ui.SampleAppMenu.SampleAppMenuGroup;
 import com.vuforia.cegrano.RenderImage.ui.SampleAppMenu.SampleAppMenuInterface;
@@ -53,31 +50,22 @@ import java.io.IOException;
 import java.util.Vector;
 
 
-// The AR activity for the VideoPlayback sample.
+// The AR activity for the ImagePlayback sample.
 public class ImagePlayback extends Activity implements
         SampleApplicationControl, SampleAppMenuInterface {
     // Movie for the Targets:
-    public static final int NUM_TARGETS = 2;
-    public static final int STONES = 0;
-    public static final int CHIPS = 1;
-    public static final int TEST = 2;
+    public static final int NUM_TARGETS = 1;
+    public static final int TEST = 0;
     private static final String LOGTAG = "ImagePlayback";
     final private static int CMD_BACK = -1;
-    final private static int CMD_FULLSCREEN_VIDEO = 1;
     SampleApplicationSession vuforiaAppSession;
     Activity mActivity;
-    DataSet dataSetStonesAndChips = null;
+    DataSet dataSetTest = null;
     boolean mIsDroidDevice = false;
     boolean mIsInitialized = false;
     // Helpers to detect events such as double tapping:
     private GestureDetector mGestureDetector = null;
     private SimpleOnGestureListener mSimpleListener = null;
-    private VideoPlayerHelper mVideoPlayerHelper[] = null;
-    private int mSeekPosition[] = null;
-    private boolean mWasPlaying[] = null;
-    private String mMovieName[] = null;
-    // A boolean to indicate whether we come from full screen:
-    private boolean mReturningFromFullScreen = false;
     // Our OpenGL view:
     private SampleApplicationGLView mGlView;
     // Our renderer:
@@ -85,7 +73,6 @@ public class ImagePlayback extends Activity implements
     // The textures we will use for rendering:
     private Vector<Texture> mTextures;
     private RelativeLayout mUILayout;
-    private boolean mPlayFullscreenVideo = false;
     private SampleAppMenu mSampleAppMenu;
     private LoadingDialogHandler loadingDialogHandler = new LoadingDialogHandler(
             this);
@@ -109,33 +96,13 @@ public class ImagePlayback extends Activity implements
 
         // Load any sample specific textures:
         mTextures = new Vector<Texture>();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                loadTextures();
-            }
-        }).start();
+        loadTextures();
 
         // Create the gesture detector that will handle the single and
         // double taps:
         mSimpleListener = new SimpleOnGestureListener();
         mGestureDetector = new GestureDetector(getApplicationContext(),
                 mSimpleListener);
-
-        mVideoPlayerHelper = new VideoPlayerHelper[NUM_TARGETS];
-        mSeekPosition = new int[NUM_TARGETS];
-        mWasPlaying = new boolean[NUM_TARGETS];
-        mMovieName = new String[NUM_TARGETS];
-
-        // Create the video player helper that handles the playback of the movie
-        // for the targets:
-        for (int i = 0; i < NUM_TARGETS; i++) {
-            mVideoPlayerHelper[i] = new VideoPlayerHelper();
-            mVideoPlayerHelper[i].init();
-            mVideoPlayerHelper[i].setActivity(this);
-        }
-        mMovieName[0] = "VideoPlayback/wjl.mp4";
-        mMovieName[1] = "VideoPlayback/wjl.mp4";
 
         // Set the double tap listener:
         mGestureDetector.setOnDoubleTapListener(new OnDoubleTapListener() {
@@ -159,35 +126,6 @@ public class ImagePlayback extends Activity implements
                     // Verify that the tap happened inside the target
                     if (mRenderer != null && mRenderer.isTapOnScreenInsideTarget(i, e.getX(),
                             e.getY())) {
-                        // Check if it is playable on texture
-                        if (mVideoPlayerHelper[i].isPlayableOnTexture()) {
-                            // We can play only if the movie was paused, ready
-                            // or stopped
-                            if ((mVideoPlayerHelper[i].getStatus() == MEDIA_STATE.PAUSED)
-                                    || (mVideoPlayerHelper[i].getStatus() == MEDIA_STATE.READY)
-                                    || (mVideoPlayerHelper[i].getStatus() == MEDIA_STATE.STOPPED)
-                                    || (mVideoPlayerHelper[i].getStatus() == MEDIA_STATE.REACHED_END)) {
-                                // Pause all other media
-                                pauseAll(i);
-
-                                // If it has reached the end then rewind
-                                if ((mVideoPlayerHelper[i].getStatus() == MEDIA_STATE.REACHED_END))
-                                    mSeekPosition[i] = 0;
-
-                                mVideoPlayerHelper[i].play(mPlayFullscreenVideo,
-                                        mSeekPosition[i]);
-                                mSeekPosition[i] = VideoPlayerHelper.CURRENT_POSITION;
-                            } else if (mVideoPlayerHelper[i].getStatus() == MEDIA_STATE.PLAYING) {
-                                // If it is playing then we pause it
-                                mVideoPlayerHelper[i].pause();
-                            }
-                        } else if (mVideoPlayerHelper[i].isPlayableFullscreen()) {
-                            // If it isn't playable on texture
-                            // Either because it wasn't requested or because it
-                            // isn't supported then request playback fullscreen.
-                            mVideoPlayerHelper[i].play(true,
-                                    VideoPlayerHelper.CURRENT_POSITION);
-                        }
 
                         isSingleTapHandled = true;
 
@@ -247,45 +185,6 @@ public class ImagePlayback extends Activity implements
             mGlView.onResume();
         }
 
-        // Reload all the movies
-        if (mRenderer != null) {
-            for (int i = 0; i < NUM_TARGETS; i++) {
-                if (!mReturningFromFullScreen) {
-                    mRenderer.requestLoad(i, mMovieName[i], mSeekPosition[i],
-                            false);
-                } else {
-                    mRenderer.requestLoad(i, mMovieName[i], mSeekPosition[i],
-                            mWasPlaying[i]);
-                }
-            }
-        }
-
-        mReturningFromFullScreen = false;
-    }
-
-    // Called when returning from the full screen player
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == 1) {
-
-            mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-
-            if (resultCode == RESULT_OK) {
-                // The following values are used to indicate the position in
-                // which the video was being played and whether it was being
-                // played or not:
-                String movieBeingPlayed = data.getStringExtra("movieName");
-                mReturningFromFullScreen = true;
-
-                // Find the movie that was being played full screen
-                for (int i = 0; i < NUM_TARGETS; i++) {
-                    if (movieBeingPlayed.compareTo(mMovieName[i]) == 0) {
-                        mSeekPosition[i] = data.getIntExtra(
-                                "currentSeekPosition", 0);
-                        mWasPlaying[i] = false;
-                    }
-                }
-            }
-        }
     }
 
     public void onConfigurationChanged(Configuration config) {
@@ -305,24 +204,6 @@ public class ImagePlayback extends Activity implements
             mGlView.onPause();
         }
 
-        // Store the playback state of the movies and unload them:
-        for (int i = 0; i < NUM_TARGETS; i++) {
-            // If the activity is paused we need to store the position in which
-            // this was currently playing:
-            if (mVideoPlayerHelper[i].isPlayableOnTexture()) {
-                mSeekPosition[i] = mVideoPlayerHelper[i].getCurrentPosition();
-                mWasPlaying[i] = mVideoPlayerHelper[i].getStatus() == MEDIA_STATE.PLAYING ? true
-                        : false;
-            }
-
-            // We also need to release the resources used by the helper, though
-            // we don't need to destroy it:
-            if (mVideoPlayerHelper[i] != null)
-                mVideoPlayerHelper[i].unload();
-        }
-
-        mReturningFromFullScreen = false;
-
         try {
             vuforiaAppSession.pauseAR();
         } catch (SampleApplicationException e) {
@@ -335,13 +216,6 @@ public class ImagePlayback extends Activity implements
         Log.d(LOGTAG, "onDestroy");
         super.onDestroy();
 
-        for (int i = 0; i < NUM_TARGETS; i++) {
-            // If the activity is destroyed we need to release all resources:
-            if (mVideoPlayerHelper[i] != null)
-                mVideoPlayerHelper[i].deinit();
-            mVideoPlayerHelper[i] = null;
-        }
-
         try {
             vuforiaAppSession.stopAR();
         } catch (SampleApplicationException e) {
@@ -353,29 +227,6 @@ public class ImagePlayback extends Activity implements
         mTextures = null;
 
         System.gc();
-    }
-
-    // Pause all movies except one
-    // if the value of 'except' is -1 then
-    // do a blanket pause
-    private void pauseAll(int except) {
-        // And pause all the playing videos:
-        for (int i = 0; i < NUM_TARGETS; i++) {
-            // We can make one exception to the pause all calls:
-            if (i != except) {
-                // Check if the video is playable on texture
-                if (mVideoPlayerHelper[i].isPlayableOnTexture()) {
-                    // If it is playing then we pause it
-                    mVideoPlayerHelper[i].pause();
-                }
-            }
-        }
-    }
-
-    // Do not exit immediately and instead show the startup screen
-    public void onBackPressed() {
-        pauseAll(-1);
-        super.onBackPressed();
     }
 
     private void startLoadingAnimation() {
@@ -413,12 +264,8 @@ public class ImagePlayback extends Activity implements
 
         // The renderer comes has the OpenGL context, thus, loading to texture
         // must happen when the surface has been created. This means that we
-        // can't load the movie from this thread (GUI) but instead we must
+        // can't render from this thread (GUI) but instead we must
         // tell the GL thread to load it once the surface has been created.
-        for (int i = 0; i < NUM_TARGETS; i++) {
-            mRenderer.setVideoPlayerHelper(i, mVideoPlayerHelper[i]);
-            mRenderer.requestLoad(i, mMovieName[i], 0, false);
-        }
 
         mGlView.setRenderer(mRenderer);
 
@@ -475,21 +322,21 @@ public class ImagePlayback extends Activity implements
         }
 
         // Create the data sets:
-        dataSetStonesAndChips = objectTracker.createDataSet();
-        if (dataSetStonesAndChips == null) {
+        dataSetTest = objectTracker.createDataSet();
+        if (dataSetTest == null) {
             Log.d(LOGTAG, "Failed to create a new tracking data.");
             return false;
         }
 
         // Load the data sets:
-        if (!dataSetStonesAndChips.load("test.xml",
+        if (!dataSetTest.load("test.xml",
                 STORAGE_TYPE.STORAGE_APPRESOURCE)) {
             Log.d(LOGTAG, "Failed to load data set.");
             return false;
         }
 
         // Activate the data set:
-        if (!objectTracker.activateDataSet(dataSetStonesAndChips)) {
+        if (!objectTracker.activateDataSet(dataSetTest)) {
             Log.d(LOGTAG, "Failed to activate data set.");
             return false;
         }
@@ -545,20 +392,20 @@ public class ImagePlayback extends Activity implements
             return false;
         }
 
-        if (dataSetStonesAndChips != null) {
-            if (objectTracker.getActiveDataSet(0) == dataSetStonesAndChips
-                    && !objectTracker.deactivateDataSet(dataSetStonesAndChips)) {
+        if (dataSetTest != null) {
+            if (objectTracker.getActiveDataSet(0) == dataSetTest
+                    && !objectTracker.deactivateDataSet(dataSetTest)) {
                 Log.d(
                         LOGTAG,
                         "Failed to destroy the tracking data set StonesAndChips because the data set could not be deactivated.");
                 result = false;
-            } else if (!objectTracker.destroyDataSet(dataSetStonesAndChips)) {
+            } else if (!objectTracker.destroyDataSet(dataSetTest)) {
                 Log.d(LOGTAG,
                         "Failed to destroy the tracking data set StonesAndChips.");
                 result = false;
             }
 
-            dataSetStonesAndChips = null;
+            dataSetTest = null;
         }
 
         return result;
@@ -667,12 +514,6 @@ public class ImagePlayback extends Activity implements
         group = mSampleAppMenu.addGroup("", false);
         group.addTextItem(getString(R.string.menu_back), -1);
 
-        group = mSampleAppMenu.addGroup("", true);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-            group.addSelectionItem(getString(R.string.menu_playFullscreenVideo),
-                    CMD_FULLSCREEN_VIDEO, mPlayFullscreenVideo);
-        }
-
         mSampleAppMenu.attachMenu();
     }
 
@@ -685,20 +526,6 @@ public class ImagePlayback extends Activity implements
         switch (command) {
             case CMD_BACK:
                 finish();
-                break;
-
-            case CMD_FULLSCREEN_VIDEO:
-                mPlayFullscreenVideo = !mPlayFullscreenVideo;
-
-                for (int i = 0; i < mVideoPlayerHelper.length; i++) {
-                    if (mVideoPlayerHelper[i].getStatus() == MEDIA_STATE.PLAYING) {
-                        // If it is playing then we pause it
-                        mVideoPlayerHelper[i].pause();
-
-                        mVideoPlayerHelper[i].play(true,
-                                mSeekPosition[i]);
-                    }
-                }
                 break;
 
         }
