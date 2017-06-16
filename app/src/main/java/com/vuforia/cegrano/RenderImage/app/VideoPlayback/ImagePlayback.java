@@ -146,16 +146,16 @@ public class ImagePlayback extends Activity implements
     // use for rendering.
     private void loadTextures() {
 
-        mTextures.add(Texture.loadTextureFromApk("abc.jpeg",
+        mTextures.add(Texture.loadTextureFromApk("SC10.jpeg",
                 getAssets()));
         try {
 
-            for (String s : getAssets().list("penquanrenwu"))
-                mTextures.add(Texture.loadTextureFromApk("penquanrenwu/" + s,
+            for (String s : getAssets().list("wjl_renwu"))
+                mTextures.add(Texture.loadTextureFromApk("wjl_renwu/" + s,
                         getAssets()));
 
-            for (String s : getAssets().list("dance"))
-                mTextures.add(Texture.loadTextureFromApk("dance/" + s,
+            for (String s : getAssets().list("wjl_dance"))
+                mTextures.add(Texture.loadTextureFromApk("wjl_dance/" + s,
                         getAssets()));
         } catch (IOException e) {
             e.printStackTrace();

@@ -343,9 +343,9 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer {
 
             // If the movie is ready to start playing or it has reached the end
             // of playback we render the keyframe
-            render(trackableResult, currentTarget, 0, "abc");
-            render(trackableResult, currentTarget, 1, "dance");
-            render(trackableResult, currentTarget, 2, "penquanrenwu");
+            render(trackableResult, currentTarget, 0, "SC10");
+            render(trackableResult, currentTarget, 1, "wjl_fountain");
+            render(trackableResult, currentTarget, 2, "wjl_renwu");
 
             SampleUtils.checkGLError("ImagePlayback renderFrame");
         }
