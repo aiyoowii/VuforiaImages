@@ -460,9 +460,9 @@ public class ImagePlayback extends Activity implements
             if (!result)
                 Log.e(LOGTAG, "Unable to enable continuous autofocus");
 
-            mSampleAppMenu = new SampleAppMenu(this, this, "Video Playback",
-                    mGlView, mUILayout, null);
-            setSampleAppMenuSettings();
+//            mSampleAppMenu = new SampleAppMenu(this, this, "Video Playback",
+//                    mGlView, mUILayout, null);
+//            setSampleAppMenuSettings();
 
             mIsInitialized = true;
 

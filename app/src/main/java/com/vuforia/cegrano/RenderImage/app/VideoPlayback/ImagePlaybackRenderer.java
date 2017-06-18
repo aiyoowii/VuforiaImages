@@ -287,6 +287,7 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer {
         Renderer.getInstance().drawVideoBackground();
 
         GLES20.glEnable(GLES20.GL_DEPTH_TEST);
+        GLES20.glDepthFunc(GLES20.GL_LEQUAL);
 
         // Set the viewport
         int[] viewport = vuforiaAppSession.getViewport();
@@ -312,7 +313,9 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer {
         }
 
         // Did we find any trackables this frame?
-        for (int tIdx = 0; tIdx < state.getNumTrackableResults(); tIdx++) {
+//        for (int tIdx = 0; tIdx < state.getNumTrackableResults(); tIdx++) {
+        int tIdx = 0;
+        if (state.getNumTrackableResults() > 0) {
             // Get the trackable:
             TrackableResult trackableResult = state.getTrackableResult(tIdx);
 
@@ -360,10 +363,12 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer {
         float[] modelViewMatrixKeyframe = Tool.convertPose2GLMatrix(
                 trackableResult.getPose()).getData();
         float[] modelViewProjectionKeyframe = new float[16];
-        if (layer > 0)
-            Matrix.translateM(modelViewMatrixKeyframe, 0, 0, 0,
-                    targetPositiveDimensions[currentTarget].getData()[1] / (20f / layer));
+//        if (layer > 0)
+//            Matrix.translateM(modelViewMatrixKeyframe, 0, 0, 0,
+//                    targetPositiveDimensions[currentTarget].getData()[1] / 20f * layer);
+        Matrix.translateM(modelViewMatrixKeyframe, 0, 0, 0, 1f * layer);
 
+        Log.e("111111", "" + targetPositiveDimensions[currentTarget].getData()[1]);
         // Here we use the aspect ratio of the keyframe since it
         // is likely that it is not a perfect square
 
@@ -378,7 +383,7 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer {
                 targetPositiveDimensions[currentTarget].getData()[0],
                 targetPositiveDimensions[currentTarget].getData()[0]
                         * ratio,
-                targetPositiveDimensions[currentTarget].getData()[0]);
+                targetPositiveDimensions[currentTarget].getData()[2]);
         Matrix.multiplyMM(modelViewProjectionKeyframe, 0,
                 vuforiaAppSession.getProjectionMatrix().getData(), 0,
                 modelViewMatrixKeyframe, 0);
@@ -386,6 +391,7 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer {
         //enable blending
         GLES20.glEnable(GLES20.GL_BLEND);
         GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
+//        GLES20.glBlendFunc(GLES20.GL_DST_ALPHA, GLES20.GL_ONE_MINUS_DST_ALPHA);
 
         GLES20.glUseProgram(keyframeShaderID);
 
@@ -402,8 +408,9 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer {
         GLES20.glEnableVertexAttribArray(keyframeTexCoordHandle);
 
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0 + layer);
-        if (layer > 0)
+        if (layer > 0) {
             index[layer]++;
+        }
         index[layer] = index[layer] % mTextures.size();
         while (!mTextures.get(index[layer]).name.contains(path)) {
             index[layer]++;
