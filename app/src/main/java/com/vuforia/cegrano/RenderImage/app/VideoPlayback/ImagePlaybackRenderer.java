@@ -366,7 +366,7 @@ public class ImagePlaybackRenderer implements GLSurfaceView.Renderer {
 //        if (layer > 0)
 //            Matrix.translateM(modelViewMatrixKeyframe, 0, 0, 0,
 //                    targetPositiveDimensions[currentTarget].getData()[1] / 20f * layer);
-        Matrix.translateM(modelViewMatrixKeyframe, 0, 0, 0, 1f * layer);
+//        Matrix.translateM(modelViewMatrixKeyframe, 0, 0, 0, 1f * layer);
 
         Log.e("111111", "" + targetPositiveDimensions[currentTarget].getData()[1]);
         // Here we use the aspect ratio of the keyframe since it
