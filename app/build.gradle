@@ -1,0 +1,50 @@
+apply plugin: 'com.android.application'
+
+//def VUFORIA_SDK_DIR = '../../vuforia-sdk-android-6-2-10'
+//def NATIVE_LIB_DIR = 'build/lib'
+//def JAR_DIR = 'build/java/vuforia'
+
+android {
+    compileSdkVersion 25
+    buildToolsVersion "25.0.3"
+
+//    sourceSets.main {
+//        jni.srcDirs = []
+//        jniLibs.srcDir "$VUFORIA_SDK_DIR/$NATIVE_LIB_DIR/"
+//    }
+
+    sourceSets.main {
+        jniLibs.srcDirs = ['libs']
+    }
+
+    defaultConfig {
+        applicationId "com.vuforia.cegrano.RenderImage"
+        minSdkVersion 8
+        targetSdkVersion 22
+        versionCode 200
+        versionName "5.0"
+    }
+	
+    archivesBaseName = rootProject.projectDir.getName()
+	
+    buildTypes {
+        release {
+            minifyEnabled false
+            ndk {
+                abiFilters "armeabi-v7a"
+            }
+        }
+        debug {
+            minifyEnabled false
+            debuggable true
+            ndk {
+                abiFilters "armeabi-v7a"
+            }
+        }
+    }
+}
+
+dependencies {
+    compile files("libs/Vuforia.jar")
+//    compile fileTree(dir: 'libs', include: ['*.jar'])
+}
