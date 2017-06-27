@@ -3,9 +3,10 @@
 
     <string name="app_name">RenderImage</string>
     <string name="app_description">RenderImage Sample Application</string>
-    
-    <string name="button_start">Start</string>
-    
+
+    <string name="button_start_image">Start_Image</string>
+    <string name="button_start_video">Start_Video</string>
+
     <string name="INIT_ERROR">Error</string>
     <string name="INIT_ERROR_DEVICE_NOT_SUPPORTED">Failed to initialize Vuforia. This device is not supported.</string>
     <string name="INIT_ERROR_NO_CAMERA_ACCESS">Failed to initialize Vuforia. Camera not accessible</string>
