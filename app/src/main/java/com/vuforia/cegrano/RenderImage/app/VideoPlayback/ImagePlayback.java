@@ -91,17 +91,12 @@ public class ImagePlayback extends Activity implements
 
         startLoadingAnimation();
 
+        vuforiaAppSession
+                .initAR(this, ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
         // Load any sample specific textures:
         mTextures = new Vector<Texture>();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                loadTextures();
-                vuforiaAppSession
-                        .initAR(ImagePlayback.this, ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-
-            }
-        }).start();
+        loadTextures();
 
         // Create the gesture detector that will handle the single and
         // double taps:
