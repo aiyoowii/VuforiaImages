@@ -50,8 +50,10 @@ public class ActivitySplashScreen extends Activity {
 
                 Intent intent = new Intent(ActivitySplashScreen.this,
                         AboutScreen.class);
-                intent.putExtra("ACTIVITY_TO_LAUNCH",
-                        "app.VideoPlayback.ImagePlayback");
+//                intent.putExtra("ACTIVITY_TO_LAUNCH1",
+//                        "app.VideoPlayback.ImagePlayback");
+//                intent.putExtra("ACTIVITY_TO_LAUNCH2",
+//                        "app.VideoPlayback.VideoPlayback");
                 intent.putExtra("ABOUT_TEXT_TITLE", "Image Playback");
                 intent.putExtra("ABOUT_TEXT", "VP_about.html");
                 startActivity(intent);

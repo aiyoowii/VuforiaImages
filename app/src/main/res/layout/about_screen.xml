@@ -8,31 +8,43 @@
         android:id="@+id/about_text_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/light_gray"
-        android:gravity="center"
         android:layout_alignParentTop="true"
+        android:background="@color/light_gray"
         android:fontFamily="sans-serif"
-        android:textStyle="bold"
+        android:gravity="center"
         android:padding="@dimen/menu_title_padding"
-        android:textSize="@dimen/menu_title" />
+        android:textSize="@dimen/menu_title"
+        android:textStyle="bold" />
 
     <Button
-        android:id="@+id/button_start"
+        android:id="@+id/button_start_video"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:gravity="center_horizontal|center_vertical"
-        android:textSize="@dimen/menu_title"
         android:fontFamily="sans-serif"
-        android:text="@string/button_start" />
+        android:gravity="center_horizontal|center_vertical"
+        android:onClick="onClick"
+        android:text="@string/button_start_video"
+        android:textSize="@dimen/menu_title" />
+
+    <Button
+        android:id="@+id/button_start_image"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/button_start_video"
+        android:fontFamily="sans-serif"
+        android:gravity="center_horizontal|center_vertical"
+        android:onClick="onClick"
+        android:text="@string/button_start_image"
+        android:textSize="@dimen/menu_title" />
 
     <WebView
         android:id="@+id/about_html_text"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_gravity="center_horizontal"
+        android:layout_above="@id/button_start_image"
         android:layout_below="@id/about_text_title"
-        android:layout_above="@id/button_start"
+        android:layout_gravity="center_horizontal"
         />
         
 </RelativeLayout>
