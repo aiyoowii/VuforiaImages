@@ -329,7 +329,7 @@ public class ImagePlayback extends Activity implements
         }
 
         // Load the data sets:
-        if (!dataSetTest.load("test.xml",
+        if (!dataSetTest.load("gubei.xml",
                 STORAGE_TYPE.STORAGE_APPRESOURCE)) {
             Log.d(LOGTAG, "Failed to load data set.");
             return false;
