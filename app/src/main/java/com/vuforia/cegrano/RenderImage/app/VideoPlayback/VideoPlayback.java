@@ -49,6 +49,7 @@ import com.vuforia.cegrano.SampleApplication.utils.LoadingDialogHandler;
 import com.vuforia.cegrano.SampleApplication.utils.SampleApplicationGLView;
 import com.vuforia.cegrano.SampleApplication.utils.Texture;
 
+import java.io.IOException;
 import java.util.Vector;
 
 
@@ -56,13 +57,14 @@ import java.util.Vector;
 public class VideoPlayback extends Activity implements
         SampleApplicationControl, SampleAppMenuInterface {
     // Movie for the Targets:
-    public static final int NUM_TARGETS = 1;
+    public static final int NUM_TARGETS = 10;
     public static final int STONES = 0;
     public static final int CHIPS = 1;
     public static final int TEST = 2;
     private static final String LOGTAG = "VideoPlayback";
     final private static int CMD_BACK = -1;
     final private static int CMD_FULLSCREEN_VIDEO = 1;
+    protected String mMovieName[] = null;
     SampleApplicationSession vuforiaAppSession;
     Activity mActivity;
     DataSet dataSetStonesAndChips = null;
@@ -74,7 +76,6 @@ public class VideoPlayback extends Activity implements
     private VideoPlayerHelper mVideoPlayerHelper[] = null;
     private int mSeekPosition[] = null;
     private boolean mWasPlaying[] = null;
-    private String mMovieName[] = null;
     // A boolean to indicate whether we come from full screen:
     private boolean mReturningFromFullScreen = false;
     // Our OpenGL view:
@@ -131,8 +132,14 @@ public class VideoPlayback extends Activity implements
 
 //        mMovieName[STONES] = "VideoPlayback/green_flag.mp4";
 //        mMovieName[CHIPS] = "VideoPlayback/green_flag.mp4";
-        mMovieName[0] = "video/cswqg.mp4";
+        try {
+            int m = 0;
+            for (String s : getAssets().list("video"))
+                mMovieName[m++ % NUM_TARGETS] = "video/" + s;
 
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         // Set the double tap listener:
         mGestureDetector.setOnDoubleTapListener(new OnDoubleTapListener() {
             public boolean onDoubleTap(MotionEvent e) {
@@ -215,6 +222,15 @@ public class VideoPlayback extends Activity implements
 //            getAssets()));
 //        mTextures.add(Texture.loadTextureFromApk("VideoPlayback/error.png",
 //            getAssets()));
+//        try {
+//
+//            for (String s : getAssets().list("video"))
+//                mTextures.add(Texture.loadTextureFromApk("video/" + s,
+//                        getAssets()));
+//
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
     }
 
     // Called when the activity will start interacting with the user.
@@ -475,7 +491,7 @@ public class VideoPlayback extends Activity implements
         }
 
         // Load the data sets:
-        if (!dataSetStonesAndChips.load("test.xml",
+        if (!dataSetStonesAndChips.load("gubei.xml",
                 STORAGE_TYPE.STORAGE_APPRESOURCE)) {
             Log.d(LOGTAG, "Failed to load data set.");
             return false;

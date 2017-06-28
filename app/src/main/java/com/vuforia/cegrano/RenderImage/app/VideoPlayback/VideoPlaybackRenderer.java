@@ -481,8 +481,15 @@ public class VideoPlaybackRenderer implements GLSurfaceView.Renderer {
 
             // We store the modelview matrix to be used later by the tap
             // calculation
-            if (imageTarget.getName().compareTo("test") == 0)
-                currentTarget = 0;
+            Log.e("image target", imageTarget.getName());
+            for (int m = 0; m < mActivity.mMovieName.length; m++) {
+                if (mActivity.mMovieName[m].contains(imageTarget.getName())) {
+                    currentTarget = m;
+                    break;
+                }
+            }
+//            if (imageTarget.getName().compareTo("test") == 0)
+//                currentTarget = 0;
 
             modelViewMatrix[currentTarget] = Tool
                     .convertPose2GLMatrix(trackableResult.getPose());
@@ -517,73 +524,75 @@ public class VideoPlaybackRenderer implements GLSurfaceView.Renderer {
 
             // If the movie is ready to start playing or it has reached the end
             // of playback we render the keyframe
+            Log.e("Status", mVideoPlayerHelper[currentTarget].getStatus() + "");
+            Log.e("Status", currentStatus[currentTarget] + "");
             if ((currentStatus[currentTarget] == VideoPlayerHelper.MEDIA_STATE.READY)
                     || (currentStatus[currentTarget] == VideoPlayerHelper.MEDIA_STATE.REACHED_END)
                     || (currentStatus[currentTarget] == VideoPlayerHelper.MEDIA_STATE.NOT_READY)
                     || (currentStatus[currentTarget] == VideoPlayerHelper.MEDIA_STATE.ERROR)) {
-                float[] modelViewMatrixKeyframe = Tool.convertPose2GLMatrix(
-                        trackableResult.getPose()).getData();
-                float[] modelViewProjectionKeyframe = new float[16];
-                // Matrix.translateM(modelViewMatrixKeyframe, 0, 0.0f, 0.0f,
-                // targetPositiveDimensions[currentTarget].getData()[0]);
-
-                // Here we use the aspect ratio of the keyframe since it
-                // is likely that it is not a perfect square
-
-                float ratio = 1.0f;
-                if (mTextures.get(currentTarget).mSuccess)
-                    ratio = keyframeQuadAspectRatio[currentTarget];
-                else
-                    ratio = targetPositiveDimensions[currentTarget].getData()[1]
-                            / targetPositiveDimensions[currentTarget].getData()[0];
-
-                Matrix.scaleM(modelViewMatrixKeyframe, 0,
-                        targetPositiveDimensions[currentTarget].getData()[0],
-                        targetPositiveDimensions[currentTarget].getData()[0]
-                                * ratio,
-                        targetPositiveDimensions[currentTarget].getData()[0]);
-                Matrix.multiplyMM(modelViewProjectionKeyframe, 0,
-                        vuforiaAppSession.getProjectionMatrix().getData(), 0,
-                        modelViewMatrixKeyframe, 0);
-
-                //enable blending
-                GLES20.glEnable(GLES20.GL_BLEND);
-                GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
-
-                GLES20.glUseProgram(keyframeShaderID);
-
-                // Prepare for rendering the keyframe
-                GLES20.glVertexAttribPointer(keyframeVertexHandle, 3,
-                        GLES20.GL_FLOAT, false, 0, quadVertices);
-                GLES20.glVertexAttribPointer(keyframeNormalHandle, 3,
-                        GLES20.GL_FLOAT, false, 0, quadNormals);
-                GLES20.glVertexAttribPointer(keyframeTexCoordHandle, 2,
-                        GLES20.GL_FLOAT, false, 0, quadTexCoords);
-
-                GLES20.glEnableVertexAttribArray(keyframeVertexHandle);
-                GLES20.glEnableVertexAttribArray(keyframeNormalHandle);
-                GLES20.glEnableVertexAttribArray(keyframeTexCoordHandle);
-
-                GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
-
-                // The first loaded texture from the assets folder is the
-                // keyframe
-                GLES20.glBindTexture(GLES20.GL_TEXTURE_2D,
-                        mTextures.get(currentTarget).mTextureID[0]);
-                GLES20.glUniformMatrix4fv(keyframeMVPMatrixHandle, 1, false,
-                        modelViewProjectionKeyframe, 0);
-                GLES20.glUniform1i(keyframeTexSampler2DHandle, 0);
-
-                // Render
-                GLES20.glDrawElements(GLES20.GL_TRIANGLES, NUM_QUAD_INDEX,
-                        GLES20.GL_UNSIGNED_SHORT, quadIndices);
-
-                GLES20.glDisableVertexAttribArray(keyframeVertexHandle);
-                GLES20.glDisableVertexAttribArray(keyframeNormalHandle);
-                GLES20.glDisableVertexAttribArray(keyframeTexCoordHandle);
-
-                GLES20.glUseProgram(0);
-                GLES20.glDisable(GLES20.GL_BLEND);
+//                float[] modelViewMatrixKeyframe = Tool.convertPose2GLMatrix(
+//                        trackableResult.getPose()).getData();
+//                float[] modelViewProjectionKeyframe = new float[16];
+//                // Matrix.translateM(modelViewMatrixKeyframe, 0, 0.0f, 0.0f,
+//                // targetPositiveDimensions[currentTarget].getData()[0]);
+//
+//                // Here we use the aspect ratio of the keyframe since it
+//                // is likely that it is not a perfect square
+//
+//                float ratio = 1.0f;
+//                if (mTextures.get(0).mSuccess)
+//                    ratio = keyframeQuadAspectRatio[currentTarget];
+//                else
+//                    ratio = targetPositiveDimensions[currentTarget].getData()[1]
+//                            / targetPositiveDimensions[currentTarget].getData()[0];
+//
+//                Matrix.scaleM(modelViewMatrixKeyframe, 0,
+//                        targetPositiveDimensions[currentTarget].getData()[0],
+//                        targetPositiveDimensions[currentTarget].getData()[0]
+//                                * ratio,
+//                        targetPositiveDimensions[currentTarget].getData()[0]);
+//                Matrix.multiplyMM(modelViewProjectionKeyframe, 0,
+//                        vuforiaAppSession.getProjectionMatrix().getData(), 0,
+//                        modelViewMatrixKeyframe, 0);
+//
+//                //enable blending
+//                GLES20.glEnable(GLES20.GL_BLEND);
+//                GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
+//
+//                GLES20.glUseProgram(keyframeShaderID);
+//
+//                // Prepare for rendering the keyframe
+//                GLES20.glVertexAttribPointer(keyframeVertexHandle, 3,
+//                        GLES20.GL_FLOAT, false, 0, quadVertices);
+//                GLES20.glVertexAttribPointer(keyframeNormalHandle, 3,
+//                        GLES20.GL_FLOAT, false, 0, quadNormals);
+//                GLES20.glVertexAttribPointer(keyframeTexCoordHandle, 2,
+//                        GLES20.GL_FLOAT, false, 0, quadTexCoords);
+//
+//                GLES20.glEnableVertexAttribArray(keyframeVertexHandle);
+//                GLES20.glEnableVertexAttribArray(keyframeNormalHandle);
+//                GLES20.glEnableVertexAttribArray(keyframeTexCoordHandle);
+//
+//                GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+//
+//                // The first loaded texture from the assets folder is the
+//                // keyframe
+//                GLES20.glBindTexture(GLES20.GL_TEXTURE_2D,
+//                        mTextures.get(currentTarget).mTextureID[0]);
+//                GLES20.glUniformMatrix4fv(keyframeMVPMatrixHandle, 1, false,
+//                        modelViewProjectionKeyframe, 0);
+//                GLES20.glUniform1i(keyframeTexSampler2DHandle, 0);
+//
+//                // Render
+//                GLES20.glDrawElements(GLES20.GL_TRIANGLES, NUM_QUAD_INDEX,
+//                        GLES20.GL_UNSIGNED_SHORT, quadIndices);
+//
+//                GLES20.glDisableVertexAttribArray(keyframeVertexHandle);
+//                GLES20.glDisableVertexAttribArray(keyframeNormalHandle);
+//                GLES20.glDisableVertexAttribArray(keyframeTexCoordHandle);
+//
+//                GLES20.glUseProgram(0);
+//                GLES20.glDisable(GLES20.GL_BLEND);
             } else
             // In any other case, such as playing or paused, we render
             // the actual contents
@@ -604,17 +613,10 @@ public class VideoPlaybackRenderer implements GLSurfaceView.Renderer {
 //                        vuforiaAppSession.getProjectionMatrix().getData(), 0,
 //                        modelViewMatrixVideo, 0);
 
-                float ratio = 1.0f;
-                if (mTextures.get(currentTarget).mSuccess)
-                    ratio = keyframeQuadAspectRatio[currentTarget];
-                else
-                    ratio = targetPositiveDimensions[currentTarget].getData()[1]
-                            / targetPositiveDimensions[currentTarget].getData()[0];
 
                 Matrix.scaleM(modelViewMatrixVideo, 0,
                         targetPositiveDimensions[currentTarget].getData()[0],
-                        targetPositiveDimensions[currentTarget].getData()[0]
-                                * ratio,
+                        targetPositiveDimensions[currentTarget].getData()[1],
                         targetPositiveDimensions[currentTarget].getData()[2]);
 
                 Matrix.multiplyMM(modelViewProjectionVideo, 0,
